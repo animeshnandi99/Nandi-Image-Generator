@@ -6,9 +6,13 @@ import OpenAI from "openai";
 
 const router = Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// OpenRouter uses OpenAI-compatible API
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
+
+const GROK_MODEL = "x-ai/grok-4.3";
 
 // POST /chat/enhance-prompt
 router.post("/chat/enhance-prompt", async (req, res) => {
@@ -21,13 +25,13 @@ router.post("/chat/enhance-prompt", async (req, res) => {
   const { prompt } = parsed.data;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await openrouter.chat.completions.create({
+      model: GROK_MODEL,
       max_tokens: 500,
       messages: [
         {
           role: "system",
-          content: `You are an expert AI image prompt engineer. Your job is to take a simple image prompt and enhance it into a vivid, detailed, professional-quality prompt for an AI image generator. 
+          content: `You are an expert AI image prompt engineer. Your job is to take a simple image prompt and enhance it into a vivid, detailed, professional-quality prompt for an AI image generator.
 Rules:
 - Keep the core subject and intent intact
 - Add specific details about lighting, mood, style, composition, and atmosphere
@@ -35,10 +39,7 @@ Rules:
 - Do NOT add quotation marks or any prefix like "Enhanced prompt:"
 - Return ONLY the enhanced prompt text, nothing else`,
         },
-        {
-          role: "user",
-          content: prompt,
-        },
+        { role: "user", content: prompt },
       ],
     });
 
@@ -64,13 +65,11 @@ router.post("/chat/message", async (req, res) => {
   res.setHeader("Connection", "keep-alive");
 
   try {
-    // Persist user message
     await db.insert(chatMessagesTable).values({
       role: "user",
       content: message.trim(),
     });
 
-    // Load history for context (last 20 messages)
     const history = await db
       .select()
       .from(chatMessagesTable)
@@ -82,8 +81,8 @@ router.post("/chat/message", async (req, res) => {
       content: m.content,
     }));
 
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const stream = await openrouter.chat.completions.create({
+      model: GROK_MODEL,
       max_tokens: 1024,
       messages: [
         {
@@ -104,7 +103,6 @@ router.post("/chat/message", async (req, res) => {
       }
     }
 
-    // Persist assistant response
     await db.insert(chatMessagesTable).values({
       role: "assistant",
       content: fullResponse,

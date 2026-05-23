@@ -6,12 +6,15 @@ import OpenAI from "openai";
 
 const router = Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 
 // POST /images/generate
 router.post("/images/generate", async (req, res) => {
+  if (!openai) {
+    res.status(503).json({ error: "Image generation is currently unavailable. OpenAI API key is not configured." });
+    return;
+  }
   const parsed = GenerateImageBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid request body" });

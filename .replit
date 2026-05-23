@@ -34,3 +34,8 @@ externalPort = 3001
 [[ports]]
 localPort = 19879
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+OPENAI_API_KEY = "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"
