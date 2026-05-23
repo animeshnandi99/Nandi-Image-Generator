@@ -99,3 +99,31 @@ export const GetImageStatsResponse = zod.object({
 })
 
 
+/**
+ * @summary Use LLM to enhance an image generation prompt
+ */
+
+
+
+export const EnhancePromptBody = zod.object({
+  "prompt": zod.string().min(1)
+})
+
+export const EnhancePromptResponse = zod.object({
+  "enhancedPrompt": zod.string(),
+  "original": zod.string()
+})
+
+
+/**
+ * @summary Get chat message history
+ */
+export const GetChatHistoryResponseItem = zod.object({
+  "id": zod.string(),
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetChatHistoryResponse = zod.array(GetChatHistoryResponseItem)
+
+

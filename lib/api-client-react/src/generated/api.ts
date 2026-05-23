@@ -20,6 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ChatMessage,
+  EnhancePromptInput,
+  EnhancePromptResult,
   ErrorResponse,
   GeneratedImage,
   GetImageHistoryParams,
@@ -496,4 +499,222 @@ export function useGetImageStats<TData = Awaited<ReturnType<typeof getImageStats
 
 
 
+
+export const getEnhancePromptUrl = () => {
+
+
+
+
+  return `/api/chat/enhance-prompt`
+}
+
+/**
+ * @summary Use LLM to enhance an image generation prompt
+ */
+export const enhancePrompt = async (enhancePromptInput: EnhancePromptInput, options?: RequestInit): Promise<EnhancePromptResult> => {
+
+  return customFetch<EnhancePromptResult>(getEnhancePromptUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      enhancePromptInput,)
+  }
+);}
+
+
+
+
+export const getEnhancePromptMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enhancePrompt>>, TError,{data: BodyType<EnhancePromptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enhancePrompt>>, TError,{data: BodyType<EnhancePromptInput>}, TContext> => {
+
+const mutationKey = ['enhancePrompt'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enhancePrompt>>, {data: BodyType<EnhancePromptInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  enhancePrompt(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnhancePromptMutationResult = NonNullable<Awaited<ReturnType<typeof enhancePrompt>>>
+    export type EnhancePromptMutationBody = BodyType<EnhancePromptInput>
+    export type EnhancePromptMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Use LLM to enhance an image generation prompt
+ */
+export const useEnhancePrompt = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enhancePrompt>>, TError,{data: BodyType<EnhancePromptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enhancePrompt>>,
+        TError,
+        {data: BodyType<EnhancePromptInput>},
+        TContext
+      > => {
+      return useMutation(getEnhancePromptMutationOptions(options));
+    }
+
+export const getGetChatHistoryUrl = () => {
+
+
+
+
+  return `/api/chat/history`
+}
+
+/**
+ * @summary Get chat message history
+ */
+export const getChatHistory = async ( options?: RequestInit): Promise<ChatMessage[]> => {
+
+  return customFetch<ChatMessage[]>(getGetChatHistoryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetChatHistoryQueryKey = () => {
+    return [
+    `/api/chat/history`
+    ] as const;
+    }
+
+
+export const getGetChatHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getChatHistory>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getChatHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetChatHistoryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getChatHistory>>> = ({ signal }) => getChatHistory({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getChatHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetChatHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getChatHistory>>>
+export type GetChatHistoryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get chat message history
+ */
+
+export function useGetChatHistory<TData = Awaited<ReturnType<typeof getChatHistory>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getChatHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetChatHistoryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getClearChatHistoryUrl = () => {
+
+
+
+
+  return `/api/chat/history`
+}
+
+/**
+ * @summary Clear all chat history
+ */
+export const clearChatHistory = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getClearChatHistoryUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getClearChatHistoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearChatHistory>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof clearChatHistory>>, TError,void, TContext> => {
+
+const mutationKey = ['clearChatHistory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearChatHistory>>, void> = () => {
+
+
+          return  clearChatHistory(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearChatHistoryMutationResult = NonNullable<Awaited<ReturnType<typeof clearChatHistory>>>
+
+    export type ClearChatHistoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear all chat history
+ */
+export const useClearChatHistory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearChatHistory>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof clearChatHistory>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getClearChatHistoryMutationOptions(options));
+    }
 

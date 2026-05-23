@@ -1,73 +1,81 @@
+import React from "react";
 import { Link, useLocation } from "wouter";
-import { Sparkles, Grid, BarChart3 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const links = [
+    { href: "/", label: "Studio" },
+    { href: "/gallery", label: "Archive" },
+    { href: "/chat", label: "Chat" },
+    { href: "/stats", label: "Metrics" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row w-full dark">
-      {/* Sidebar Navigation */}
-      <nav className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 bg-card/40 backdrop-blur-md flex-shrink-0 flex flex-col z-10 relative">
-        <div className="p-6 md:p-8 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-            <Sparkles className="w-5 h-5 text-white" />
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 cursor-pointer group">
+            <span className="font-serif text-2xl font-normal tracking-tight group-hover:text-primary transition-colors">
+              NandiAi
+            </span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-xs font-mono uppercase tracking-widest transition-colors hover:text-primary ${
+                  location === link.href ? "text-primary" : "text-muted-foreground"
+                }`}
+                data-testid={`nav-link-${link.label.toLowerCase()}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden p-2 -mr-2 text-foreground"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            data-testid="button-mobile-menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Nav */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-background py-4">
+            <nav className="container mx-auto px-4 flex flex-col gap-4">
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`text-lg font-serif transition-colors ${
+                    location === link.href ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
-          <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-            NandiAi
-          </span>
-        </div>
+        )}
+      </header>
 
-        <div className="flex flex-row md:flex-col gap-2 px-4 md:px-6 pb-4 md:pb-0 overflow-x-auto">
-          <NavItem
-            href="/"
-            icon={<Sparkles className="w-5 h-5" />}
-            label="Studio"
-            active={location === "/"}
-          />
-          <NavItem
-            href="/gallery"
-            icon={<Grid className="w-5 h-5" />}
-            label="Gallery"
-            active={location === "/gallery"}
-          />
-          <NavItem
-            href="/stats"
-            icon={<BarChart3 className="w-5 h-5" />}
-            label="Stats"
-            active={location === "/stats"}
-          />
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="flex-1 relative overflow-x-hidden min-w-0">
-        {/* Decorative background noise/gradients */}
-        <div className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute top-0 right-0 w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] mix-blend-screen" />
-          <div className="absolute bottom-0 left-0 w-[50vw] h-[50vh] bg-blue-500/5 rounded-full blur-[120px] mix-blend-screen" />
-        </div>
-        
-        <div className="relative z-10 w-full h-full p-4 md:p-8">
-          {children}
-        </div>
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 lg:p-12">
+        {children}
       </main>
     </div>
-  );
-}
-
-function NavItem({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
-  return (
-    <Link href={href} className={cn(
-      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300",
-      "hover:bg-white/5",
-      active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"
-    )}>
-      <div className={cn("transition-transform duration-300", active && "scale-110")}>
-        {icon}
-      </div>
-      <span className="hidden md:block">{label}</span>
-      <span className="md:hidden text-sm">{label}</span>
-    </Link>
   );
 }

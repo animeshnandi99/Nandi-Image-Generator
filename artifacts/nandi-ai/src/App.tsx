@@ -3,13 +3,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 
 // Import pages
 import Home from "@/pages/home";
 import Gallery from "@/pages/gallery";
 import Stats from "@/pages/stats";
+import Chat from "@/pages/chat";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +26,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/gallery" component={Gallery} />
+        <Route path="/chat" component={Chat} />
         <Route path="/stats" component={Stats} />
         <Route component={NotFound} />
       </Switch>
@@ -34,10 +35,6 @@ function Router() {
 }
 
 function App() {
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: images
     description: Image generation operations
+  - name: chat
+    description: LLM chat operations
 paths:
   /healthz:
     get:
@@ -135,6 +137,54 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImageStats"
 
+  /chat/enhance-prompt:
+    post:
+      operationId: enhancePrompt
+      tags: [chat]
+      summary: Use LLM to enhance an image generation prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnhancePromptInput"
+      responses:
+        "200":
+          description: Enhanced prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancePromptResult"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chat/history:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get chat message history
+      responses:
+        "200":
+          description: List of chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+
+    delete:
+      operationId: clearChatHistory
+      tags: [chat]
+      summary: Clear all chat history
+      responses:
+        "204":
+          description: Cleared
+
 components:
   schemas:
     HealthStatus:
@@ -204,6 +254,45 @@ components:
                 type: string
               count:
                 type: integer
+
+    EnhancePromptInput:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+
+    EnhancePromptResult:
+      type: object
+      required:
+        - enhancedPrompt
+        - original
+      properties:
+        enhancedPrompt:
+          type: string
+        original:
+          type: string
+
+    ChatMessage:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
     ErrorResponse:
       type: object

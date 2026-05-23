@@ -47,6 +47,31 @@ export interface ImageStats {
   popularStyles: ImageStatsPopularStylesItem[];
 }
 
+export interface EnhancePromptInput {
+  /** @minLength 1 */
+  prompt: string;
+}
+
+export interface EnhancePromptResult {
+  enhancedPrompt: string;
+  original: string;
+}
+
+export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
+
+
+export const ChatMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface ChatMessage {
+  id: string;
+  role: ChatMessageRole;
+  content: string;
+  createdAt: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }
