@@ -1,20 +1,28 @@
 import { Router } from "express";
 import { db, imagesTable } from "@workspace/db";
 import { desc, eq, sql, count } from "drizzle-orm";
-import { GenerateImageBody, GetImageHistoryQueryParams, GetImageParams, DeleteImageParams } from "@workspace/api-zod";
-import OpenAI from "openai";
+import {
+  GenerateImageBody,
+  GetImageHistoryQueryParams,
+  GetImageParams,
+  DeleteImageParams,
+} from "@workspace/api-zod";
 
 const router = Router();
 
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+function sizeToDimensions(size: string): { width: number; height: number } {
+  switch (size) {
+    case "1536x1024":
+      return { width: 1536, height: 1024 };
+    case "1024x1536":
+      return { width: 1024, height: 1536 };
+    default:
+      return { width: 1024, height: 1024 };
+  }
+}
 
 // POST /images/generate
 router.post("/images/generate", async (req, res) => {
-  if (!openai) {
-    res.status(503).json({ error: "Image generation is currently unavailable. OpenAI API key is not configured." });
-    return;
-  }
   const parsed = GenerateImageBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid request body" });
@@ -24,28 +32,24 @@ router.post("/images/generate", async (req, res) => {
   const { prompt, size = "1024x1024", style } = parsed.data;
 
   try {
-    const validSize = (
-      size === "1024x1024" || size === "1536x1024" || size === "1024x1536"
-        ? size
-        : "1024x1024"
-    ) as "1024x1024" | "1536x1024" | "1024x1536";
+    const { width, height } = sizeToDimensions(size);
+    const fullPrompt = style ? `${prompt}. Style: ${style}` : prompt;
+    const encodedPrompt = encodeURIComponent(fullPrompt);
+    const seed = Math.floor(Math.random() * 1_000_000);
 
-    const response = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt: style ? `${prompt}. Style: ${style}` : prompt,
-      size: validSize,
-      quality: "standard",
-    });
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&enhance=true`;
 
-    const b64_json = response.data?.[0]?.b64_json;
-    if (!b64_json) {
-      res.status(500).json({ error: "No image returned from OpenAI" });
-      return;
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      throw new Error(`Pollinations API returned ${imageResponse.status}`);
     }
+
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    const b64_json = imageBuffer.toString("base64");
 
     const [inserted] = await db
       .insert(imagesTable)
-      .values({ prompt, b64_json, size: validSize, style: style ?? null })
+      .values({ prompt, b64_json, size, style: style ?? null })
       .returning();
 
     res.json({
@@ -58,7 +62,8 @@ router.post("/images/generate", async (req, res) => {
     });
   } catch (err: unknown) {
     req.log.error({ err }, "Image generation failed");
-    const message = err instanceof Error ? err.message : "Image generation failed";
+    const message =
+      err instanceof Error ? err.message : "Image generation failed";
     res.status(500).json({ error: message });
   }
 });
@@ -88,15 +93,13 @@ router.get("/images/history", async (req, res) => {
       size: row.size,
       style: row.style ?? null,
       createdAt: row.createdAt.toISOString(),
-    }))
+    })),
   );
 });
 
 // GET /images/stats
 router.get("/images/stats", async (req, res) => {
-  const [totalRow] = await db
-    .select({ total: count() })
-    .from(imagesTable);
+  const [totalRow] = await db.select({ total: count() }).from(imagesTable);
 
   const [todayRow] = await db
     .select({ today: count() })
