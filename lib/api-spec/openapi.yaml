@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: images
+    description: Image generation operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,115 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /images/generate:
+    post:
+      operationId: generateImage
+      tags: [images]
+      summary: Generate an image from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageGenerationInput"
+      responses:
+        "200":
+          description: Generated image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedImage"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /images/history:
+    get:
+      operationId: getImageHistory
+      tags: [images]
+      summary: Get previously generated images
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of generated images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedImage"
+
+  /images/{id}:
+    get:
+      operationId: getImage
+      tags: [images]
+      summary: Get a single generated image by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The generated image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedImage"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteImage
+      tags: [images]
+      summary: Delete a generated image
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /images/stats:
+    get:
+      operationId: getImageStats
+      tags: [images]
+      summary: Get image generation statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +145,70 @@ components:
       required:
         - status
 
+    ImageGenerationInput:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+        size:
+          type: string
+          enum: ["1024x1024", "1536x1024", "1024x1536"]
+          default: "1024x1024"
+        style:
+          type: ["string", "null"]
+
+    GeneratedImage:
+      type: object
+      required:
+        - id
+        - prompt
+        - b64_json
+        - size
+        - createdAt
+      properties:
+        id:
+          type: integer
+        prompt:
+          type: string
+        b64_json:
+          type: string
+        size:
+          type: string
+        style:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ImageStats:
+      type: object
+      required:
+        - totalGenerated
+        - todayGenerated
+        - popularStyles
+      properties:
+        totalGenerated:
+          type: integer
+        todayGenerated:
+          type: integer
+        popularStyles:
+          type: array
+          items:
+            type: object
+            required: [style, count]
+            properties:
+              style:
+                type: string
+              count:
+                type: integer
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
