@@ -33,11 +33,14 @@ router.post("/images/generate", async (req, res) => {
 
   try {
     const { width, height } = sizeToDimensions(size);
-    const fullPrompt = style ? `${prompt}. Style: ${style}` : prompt;
+    const fullPrompt = style
+      ? `${prompt}, ${style} style, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`
+      : `${prompt}, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`;
     const encodedPrompt = encodeURIComponent(fullPrompt);
     const seed = Math.floor(Math.random() * 1_000_000);
+    const encodedNegative = encodeURIComponent("blurry, low quality, watermark, text, deformed, ugly, duplicate, watermark, signature");
 
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&enhance=true`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&enhance=true&model=flux&turbo=false&negative_prompt=${encodedNegative}`;
 
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
