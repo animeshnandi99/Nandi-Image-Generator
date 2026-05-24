@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetChatHistory, getGetChatHistoryQueryKey, useClearChatHistory } from "@workspace/api-client-react";
-import { Send, Trash2, Bot, User, Sparkles } from "lucide-react";
+import { Send, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import logoImg from "@assets/nandi-ai-1777879067042_1779626685766.png";
 
 type Message = {
   id: string;
@@ -121,9 +122,7 @@ export default function Chat() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 pb-5 border-b border-white/8 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl btn-gradient flex items-center justify-center shadow-lg">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+          <img src={logoImg} alt="NandiAi" className="w-10 h-10 rounded-xl object-cover shadow-lg" />
           <div>
             <h1 className="text-xl font-bold gradient-text">NandiAi Assistant</h1>
             <p className="text-muted-foreground text-xs font-light mt-0.5">Your creative AI companion</p>
@@ -152,9 +151,7 @@ export default function Chat() {
           </div>
         ) : (!history || history.length === 0) && !isStreaming ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center shadow-xl glow">
-              <Bot className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoImg} alt="NandiAi" className="w-16 h-16 rounded-2xl object-cover shadow-xl glow" />
             <div>
               <p className="font-semibold text-lg text-foreground/80 mb-1">How can I help you today?</p>
               <p className="text-muted-foreground text-sm">Ask me anything about your creative projects.</p>
@@ -179,7 +176,7 @@ export default function Chat() {
                 )}>
                   {msg.role === "user"
                     ? <User className="w-4 h-4 text-white" />
-                    : <Bot className="w-4 h-4 text-muted-foreground" />
+                    : <img src={logoImg} alt="NandiAi" className="w-4 h-4 rounded object-cover" />
                   }
                 </div>
 
@@ -199,7 +196,7 @@ export default function Chat() {
             {isStreaming && (
               <div className="flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl glass border border-white/10">
-                  <Bot className="w-4 h-4 text-muted-foreground" />
+                  <img src={logoImg} alt="NandiAi" className="w-4 h-4 rounded object-cover" />
                 </div>
                 <div className="glass border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
                   {streamedContent || (

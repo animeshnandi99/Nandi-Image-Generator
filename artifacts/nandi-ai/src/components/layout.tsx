@@ -1,12 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Sparkles, Image, MessageSquare, BarChart2 } from "lucide-react";
+import { Image, MessageSquare, BarChart2 } from "lucide-react";
+import logoImg from "@assets/nandi-ai-1777879067042_1779626685766.png";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   const links = [
-    { href: "/", label: "Studio", icon: Sparkles },
+    { href: "/", label: "Studio", icon: Image },
     { href: "/gallery", label: "Gallery", icon: Image },
     { href: "/chat", label: "Chat", icon: MessageSquare },
     { href: "/stats", label: "Stats", icon: BarChart2 },
@@ -25,9 +26,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 cursor-pointer group">
-            <div className="w-8 h-8 rounded-lg btn-gradient flex items-center justify-center shadow-lg">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <img
+              src={logoImg}
+              alt="NandiAi"
+              className="w-10 h-10 rounded-lg object-cover shadow-lg"
+            />
             <span className="font-bold text-xl tracking-tight gradient-text">
               NandiAi
             </span>

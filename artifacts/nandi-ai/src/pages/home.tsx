@@ -79,7 +79,7 @@ export default function Home() {
           toast({
             variant: "destructive",
             title: "Generation Failed",
-            description: error?.error || "We encountered an error. Please try again.",
+            description: (error as any)?.error || "We encountered an error. Please try again.",
           });
         },
       }
