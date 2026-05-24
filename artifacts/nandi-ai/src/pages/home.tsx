@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -219,30 +219,19 @@ export default function Home() {
                 name="style"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. 35mm photograph, minimalist, brutalist"
-                        className="glass rounded-xl border-white/10 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:border-primary/40 placeholder:text-muted-foreground/50 transition-all duration-200"
-                        {...field}
-                      />
-                    </FormControl>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {STYLES.map(style => (
-                        <button
-                          key={style}
-                          type="button"
-                          onClick={() => field.onChange(style)}
-                          className={cn(
-                            "text-xs py-1.5 px-4 rounded-full border transition-all duration-200",
-                            field.value === style
-                              ? "border-primary/60 bg-primary/15 text-primary"
-                              : "glass-subtle border-white/8 text-muted-foreground hover:border-white/20 hover:text-foreground"
-                          )}
-                        >
-                          {style}
-                        </button>
-                      ))}
-                    </div>
+                    <Select onValueChange={(val) => field.onChange(val === "__none__" ? "" : val)} value={field.value || "__none__"}>
+                      <FormControl>
+                        <SelectTrigger className="glass rounded-xl border-white/10 h-11 focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all duration-200">
+                          <SelectValue placeholder="No style" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="glass border-white/10 bg-[hsl(var(--background)/0.92)] backdrop-blur-xl rounded-xl">
+                        <SelectItem value="__none__" className="text-muted-foreground focus:bg-white/8">No style</SelectItem>
+                        {STYLES.map(style => (
+                          <SelectItem key={style} value={style} className="focus:bg-white/8">{style}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
