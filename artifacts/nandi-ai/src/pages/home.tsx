@@ -111,34 +111,37 @@ export default function Home() {
   const isEnhancing = enhanceMutation.isPending;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-stretch min-h-[calc(100vh-8rem)] pt-6">
+    <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-stretch min-h-[calc(100vh-8rem)] pt-6">
       {/* Input Side */}
       <div className="w-full lg:w-[45%] flex flex-col shrink-0">
         <div className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-serif mb-4 leading-tight">Bring ideas to <br/><span className="text-primary italic">visual life.</span></h1>
-          <p className="text-muted-foreground text-lg font-light tracking-wide max-w-md">
-            Describe your subject, define the dimensions, and select a mood. Our synthesis engine handles the rest.
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+            Bring ideas to{" "}
+            <span className="gradient-text">visual life.</span>
+          </h1>
+          <p className="text-muted-foreground text-lg font-light max-w-md leading-relaxed">
+            Describe your vision, choose your canvas, and let AI do the rest.
           </p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex-1 flex flex-col">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 flex-1 flex flex-col">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium uppercase tracking-wider text-foreground">Prompt</label>
+                <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Prompt</label>
                 <Button 
                   type="button" 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleEnhance}
                   disabled={isEnhancing || isGenerating}
-                  className="h-8 text-xs font-mono text-primary hover:text-primary hover:bg-primary/10"
+                  className="h-8 text-xs font-medium text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3"
                   data-testid="button-enhance-prompt"
                 >
                   {isEnhancing ? (
-                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                    <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
                   ) : (
-                    <Sparkles className="w-3 h-3 mr-2" />
+                    <Sparkles className="w-3 h-3 mr-1.5" />
                   )}
                   Enhance with AI
                 </Button>
@@ -150,17 +153,19 @@ export default function Home() {
                   <FormItem className="relative">
                     <FormControl>
                       <Textarea
-                        placeholder="A lone figure standing on a desolate black sand beach, cinematic lighting, dramatic clouds..."
+                        placeholder="A lone astronaut floating through a nebula of violet and gold, cinematic, ultra-detailed..."
                         className={cn(
-                          "min-h-[160px] resize-none text-lg bg-white rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary shadow-sm transition-all",
+                          "min-h-[160px] resize-none text-base glass rounded-xl border-white/10",
+                          "focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:border-primary/40",
+                          "placeholder:text-muted-foreground/50 transition-all duration-200",
                           isEnhancing && "animate-pulse"
                         )}
                         {...field}
                       />
                     </FormControl>
                     {showEnhancedBadge && (
-                      <div className="absolute -top-3 -right-3 bg-primary text-white text-[10px] uppercase tracking-widest font-mono py-1 px-2 animate-in zoom-in fade-in duration-300 pointer-events-none">
-                        Enhanced
+                      <div className="absolute -top-2.5 -right-2.5 btn-gradient text-white text-[10px] uppercase tracking-widest font-mono py-1 px-2.5 rounded-full animate-in zoom-in fade-in duration-300 pointer-events-none shadow-lg">
+                        Enhanced ✓
                       </div>
                     )}
                     <FormMessage />
@@ -170,7 +175,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium uppercase tracking-wider text-foreground">Dimensions</label>
+              <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Dimensions</label>
               <FormField
                 control={form.control}
                 name="size"
@@ -178,42 +183,27 @@ export default function Home() {
                   <FormItem>
                     <FormControl>
                       <div className="grid grid-cols-3 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => field.onChange("1024x1024")}
-                          className={cn(
-                            "flex flex-col items-center justify-center p-4 border transition-all h-24 bg-white",
-                            field.value === "1024x1024" ? "border-primary text-primary shadow-[2px_2px_0px_0px_hsl(var(--primary))]" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                          )}
-                          data-testid="btn-size-square"
-                        >
-                          <div className="w-6 h-6 border-2 border-current mb-2" />
-                          <span className="text-xs font-mono uppercase">Square</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => field.onChange("1536x1024")}
-                          className={cn(
-                            "flex flex-col items-center justify-center p-4 border transition-all h-24 bg-white",
-                            field.value === "1536x1024" ? "border-primary text-primary shadow-[2px_2px_0px_0px_hsl(var(--primary))]" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                          )}
-                          data-testid="btn-size-landscape"
-                        >
-                          <div className="w-8 h-5 border-2 border-current mb-2" />
-                          <span className="text-xs font-mono uppercase">Landscape</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => field.onChange("1024x1536")}
-                          className={cn(
-                            "flex flex-col items-center justify-center p-4 border transition-all h-24 bg-white",
-                            field.value === "1024x1536" ? "border-primary text-primary shadow-[2px_2px_0px_0px_hsl(var(--primary))]" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                          )}
-                          data-testid="btn-size-portrait"
-                        >
-                          <div className="w-5 h-8 border-2 border-current mb-2" />
-                          <span className="text-xs font-mono uppercase">Portrait</span>
-                        </button>
+                        {[
+                          { value: "1024x1024", label: "Square", shape: "w-7 h-7" },
+                          { value: "1536x1024", label: "Landscape", shape: "w-10 h-6" },
+                          { value: "1024x1536", label: "Portrait", shape: "w-6 h-10" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => field.onChange(opt.value)}
+                            className={cn(
+                              "flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 h-24",
+                              field.value === opt.value
+                                ? "border-primary/60 bg-primary/15 text-primary glow-sm"
+                                : "glass border-white/8 text-muted-foreground hover:border-white/20 hover:text-foreground"
+                            )}
+                            data-testid={`btn-size-${opt.label.toLowerCase()}`}
+                          >
+                            <div className={cn("border-2 border-current mb-2 rounded-sm", opt.shape)} />
+                            <span className="text-xs font-medium">{opt.label}</span>
+                          </button>
+                        ))}
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -223,7 +213,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium uppercase tracking-wider text-foreground">Style</label>
+              <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Style</label>
               <FormField
                 control={form.control}
                 name="style"
@@ -232,7 +222,7 @@ export default function Home() {
                     <FormControl>
                       <Input
                         placeholder="e.g. 35mm photograph, minimalist, brutalist"
-                        className="bg-white rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary"
+                        className="glass rounded-xl border-white/10 focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:border-primary/40 placeholder:text-muted-foreground/50 transition-all duration-200"
                         {...field}
                       />
                     </FormControl>
@@ -242,7 +232,12 @@ export default function Home() {
                           key={style}
                           type="button"
                           onClick={() => field.onChange(style)}
-                          className="text-xs py-1 px-3 border border-border bg-white text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                          className={cn(
+                            "text-xs py-1.5 px-4 rounded-full border transition-all duration-200",
+                            field.value === style
+                              ? "border-primary/60 bg-primary/15 text-primary"
+                              : "glass-subtle border-white/8 text-muted-foreground hover:border-white/20 hover:text-foreground"
+                          )}
                         >
                           {style}
                         </button>
@@ -254,78 +249,88 @@ export default function Home() {
               />
             </div>
 
-            <div className="pt-4 pb-12">
-              <Button
+            <div className="pt-2 pb-4">
+              <button
                 type="submit"
-                size="lg"
                 disabled={isGenerating}
-                className="w-full text-lg h-16 rounded-none bg-foreground text-background hover:bg-foreground/90 transition-all uppercase tracking-widest font-mono"
+                className={cn(
+                  "w-full h-16 rounded-xl text-white font-semibold text-base transition-all duration-300",
+                  "flex items-center justify-center gap-3",
+                  isGenerating
+                    ? "bg-primary/50 cursor-not-allowed"
+                    : "btn-gradient hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98]"
+                )}
                 data-testid="button-generate"
               >
                 {isGenerating ? (
-                  <span className="flex items-center gap-3 animate-pulse">
+                  <span className="flex items-center gap-3">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Synthesizing...
+                    Generating...
                   </span>
                 ) : (
                   <span className="flex items-center gap-3">
-                    Generate Artifact <Wand2 className="h-5 w-5" />
+                    Generate Artwork <Wand2 className="h-5 w-5" />
                   </span>
                 )}
-              </Button>
+              </button>
             </div>
           </form>
         </Form>
       </div>
 
       {/* Output Side */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-secondary/50 border border-border p-8 lg:p-12 min-h-[500px] mb-12">
+      <div className={cn(
+        "flex-1 flex flex-col items-center justify-center glass rounded-2xl p-8 lg:p-12 min-h-[500px] mb-4 transition-all duration-500",
+        generatedImage && "glow"
+      )}>
         {generatedImage ? (
           <div className="w-full max-w-3xl animate-in fade-in zoom-in duration-700">
-            <div className="relative group bg-white p-4 shadow-sm border border-border">
+            <div className="relative group rounded-xl overflow-hidden border border-white/10">
               <img
                 src={`data:image/png;base64,${generatedImage.b64_json}`}
                 alt="Generated artwork"
                 className="w-full object-contain"
               />
-              
-              <div className="mt-6 flex flex-col gap-4">
-                <p className="text-sm leading-relaxed font-serif text-foreground/80 italic border-l-2 border-primary pl-4">
-                  "{generatedImage.prompt}"
-                </p>
-                <div className="flex items-center justify-between border-t border-border pt-4">
-                  <span className="text-xs font-mono text-muted-foreground uppercase">{generatedImage.size}</span>
-                  <a
-                    href={`data:image/png;base64,${generatedImage.b64_json}`}
-                    download={`nandi-${Date.now()}.png`}
-                    className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider hover:text-primary transition-colors"
-                    data-testid="button-download"
-                  >
-                    Download <Download className="w-3 h-3" />
-                  </a>
-                </div>
+            </div>
+            
+            <div className="mt-5 glass rounded-xl p-4 space-y-4">
+              <p className="text-sm leading-relaxed text-foreground/70 italic border-l-2 border-primary/60 pl-4">
+                "{generatedImage.prompt}"
+              </p>
+              <div className="flex items-center justify-between border-t border-white/8 pt-3">
+                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">{generatedImage.size}</span>
+                <a
+                  href={`data:image/png;base64,${generatedImage.b64_json}`}
+                  download={`nandi-${Date.now()}.png`}
+                  className="flex items-center gap-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  data-testid="button-download"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download
+                </a>
               </div>
             </div>
           </div>
         ) : isGenerating ? (
           <div className="flex flex-col items-center justify-center gap-8 animate-in fade-in duration-500 text-center">
             <div className="relative">
-              <div className="w-32 h-32 border border-foreground/10 rounded-full animate-spin" style={{ animationDuration: '3s' }} />
-              <div className="w-32 h-32 border border-primary border-t-transparent border-l-transparent rounded-full animate-spin absolute inset-0" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary w-6 h-6 animate-pulse" />
+              <div className="w-28 h-28 rounded-full border border-white/10 animate-spin" style={{ animationDuration: '3s' }} />
+              <div className="w-28 h-28 rounded-full border-2 border-primary border-t-transparent border-l-transparent animate-spin absolute inset-0" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full btn-gradient flex items-center justify-center shadow-lg">
+                <Sparkles className="w-5 h-5 text-white animate-pulse" />
+              </div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm font-mono tracking-widest uppercase text-foreground animate-pulse">Running Synthesis</div>
-              <div className="text-xs text-muted-foreground max-w-xs mx-auto">Allocating compute resources and refining visual semantics...</div>
+              <div className="text-sm font-semibold tracking-widest uppercase gradient-text animate-pulse">Generating Your Vision</div>
+              <div className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">Processing your prompt and rendering the final image...</div>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center opacity-40">
-            <div className="w-16 h-16 border border-current flex items-center justify-center mb-6">
-              <div className="w-8 h-8 border border-current" />
+            <div className="w-20 h-20 rounded-2xl border border-current flex items-center justify-center mb-6">
+              <Wand2 className="w-9 h-9" />
             </div>
-            <p className="font-mono text-xs uppercase tracking-widest max-w-[200px] leading-relaxed">
-              Waiting for input parameters
+            <p className="font-medium text-sm uppercase tracking-widest max-w-[200px] leading-relaxed">
+              Your artwork will appear here
             </p>
           </div>
         )}

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetChatHistory, getGetChatHistoryQueryKey, useClearChatHistory } from "@workspace/api-client-react";
-import { Send, Trash2, Bot, User } from "lucide-react";
+import { Send, Trash2, Bot, User, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +54,6 @@ export default function Chat() {
     setIsStreaming(true);
     setStreamedContent("");
 
-    // Optimistically update cache to show user message immediately
     queryClient.setQueryData(getGetChatHistoryQueryKey(), (old: Message[] | undefined) => {
       const msgs = old || [];
       return [...msgs, {
@@ -107,7 +106,6 @@ export default function Chat() {
         }
       }
       
-      // Done streaming
       queryClient.invalidateQueries({ queryKey: getGetChatHistoryQueryKey() });
     } catch (error) {
       toast({ variant: "destructive", description: "Connection error." });
@@ -120,57 +118,77 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto py-6">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border shrink-0">
-        <div>
-          <h1 className="text-3xl font-serif">NandiAi Assistant</h1>
-          <p className="text-muted-foreground text-sm font-light mt-1">A conversational interface for creative thought.</p>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 pb-5 border-b border-white/8 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl btn-gradient flex items-center justify-center shadow-lg">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold gradient-text">NandiAi Assistant</h1>
+            <p className="text-muted-foreground text-xs font-light mt-0.5">Your creative AI companion</p>
+          </div>
         </div>
         <Button 
-          variant="outline" 
+          variant="ghost" 
           size="sm" 
           onClick={handleClear}
           disabled={!history?.length || isStreaming || clearMutation.isPending}
-          className="rounded-none border-border font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive"
+          className="text-[11px] font-medium text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-full px-3 gap-1.5 transition-all"
         >
-          <Trash2 className="w-3 h-3 mr-2" />
-          Clear Chat
+          <Trash2 className="w-3.5 h-3.5" />
+          Clear
         </Button>
       </div>
 
+      {/* Messages */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto mb-6 pr-4 space-y-8 scroll-smooth"
+        className="flex-1 overflow-y-auto mb-5 pr-2 space-y-5 scroll-smooth"
       >
         {isLoading ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground font-serif italic">
+          <div className="flex items-center justify-center h-full text-muted-foreground italic text-sm">
             Connecting...
           </div>
         ) : (!history || history.length === 0) && !isStreaming ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-12 h-12 border border-border flex items-center justify-center bg-white">
-              <Bot className="w-6 h-6 text-muted-foreground" />
+            <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center shadow-xl glow">
+              <Bot className="w-8 h-8 text-white" />
             </div>
-            <p className="font-serif text-lg text-muted-foreground">How can I assist your creative process?</p>
+            <div>
+              <p className="font-semibold text-lg text-foreground/80 mb-1">How can I help you today?</p>
+              <p className="text-muted-foreground text-sm">Ask me anything about your creative projects.</p>
+            </div>
           </div>
         ) : (
-          <div className="space-y-8 pb-4">
+          <div className="space-y-5 pb-4">
             {history?.map((msg) => (
               <div 
                 key={msg.id} 
                 className={cn(
-                  "flex gap-4 max-w-[85%]",
+                  "flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300",
                   msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                 )}
               >
+                {/* Avatar */}
                 <div className={cn(
-                  "shrink-0 w-8 h-8 flex items-center justify-center border",
-                  msg.role === "user" ? "border-primary bg-primary text-white" : "border-border bg-white text-foreground"
+                  "shrink-0 w-8 h-8 flex items-center justify-center rounded-xl shadow-md",
+                  msg.role === "user"
+                    ? "btn-gradient"
+                    : "glass border border-white/10"
                 )}>
-                  {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  {msg.role === "user"
+                    ? <User className="w-4 h-4 text-white" />
+                    : <Bot className="w-4 h-4 text-muted-foreground" />
+                  }
                 </div>
+
+                {/* Bubble */}
                 <div className={cn(
-                  "p-4 text-sm leading-relaxed whitespace-pre-wrap",
-                  msg.role === "user" ? "bg-white border border-border text-foreground" : "font-serif text-base"
+                  "rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+                  msg.role === "user"
+                    ? "btn-gradient text-white rounded-tr-sm shadow-lg"
+                    : "glass border border-white/8 text-foreground/90 rounded-tl-sm"
                 )}>
                   {msg.content}
                 </div>
@@ -179,13 +197,21 @@ export default function Chat() {
             
             {/* Streaming Message Bubble */}
             {isStreaming && (
-              <div className="flex gap-4 max-w-[85%]">
-                <div className="shrink-0 w-8 h-8 flex items-center justify-center border border-border bg-white text-foreground">
-                  <Bot className="w-4 h-4" />
+              <div className="flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl glass border border-white/10">
+                  <Bot className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <div className="p-4 text-base font-serif leading-relaxed whitespace-pre-wrap">
-                  {streamedContent}
-                  <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse align-middle" />
+                <div className="glass border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
+                  {streamedContent || (
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                  )}
+                  {streamedContent && (
+                    <span className="inline-block w-0.5 h-4 ml-0.5 bg-primary animate-pulse align-middle rounded-full" />
+                  )}
                 </div>
               </div>
             )}
@@ -193,33 +219,43 @@ export default function Chat() {
         )}
       </div>
 
-      <div className="shrink-0 bg-white border border-border p-2 focus-within:ring-1 focus-within:ring-primary transition-shadow">
-        <form onSubmit={handleSubmit} className="flex items-end gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            placeholder="Type your message..."
-            className="min-h-[52px] max-h-32 border-none shadow-none resize-none focus-visible:ring-0 rounded-none bg-transparent"
-            disabled={isStreaming}
-          />
-          <Button 
-            type="submit" 
-            size="icon" 
-            disabled={!input.trim() || isStreaming}
-            className="rounded-none h-10 w-10 shrink-0 bg-foreground text-background hover:bg-foreground/90 mb-1 mr-1"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </form>
-      </div>
-      <div className="text-center mt-2">
-         <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Shift+Enter for newline</span>
+      {/* Input Bar */}
+      <div className="shrink-0">
+        <div className={cn(
+          "glass rounded-2xl border border-white/10 p-2 transition-all duration-200",
+          "focus-within:border-primary/40 focus-within:shadow-lg focus-within:shadow-primary/10"
+        )}>
+          <form onSubmit={handleSubmit} className="flex items-end gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              placeholder="Message NandiAi..."
+              className="min-h-[52px] max-h-36 border-none shadow-none resize-none focus-visible:ring-0 rounded-xl bg-transparent placeholder:text-muted-foreground/40 text-sm"
+              disabled={isStreaming}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isStreaming}
+              className={cn(
+                "h-10 w-10 rounded-xl shrink-0 mb-1 mr-1 flex items-center justify-center transition-all duration-200",
+                input.trim() && !isStreaming
+                  ? "btn-gradient text-white hover:shadow-lg hover:shadow-purple-500/30 active:scale-95"
+                  : "bg-white/5 text-muted-foreground cursor-not-allowed"
+              )}
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+        <p className="text-center mt-2 text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
+          Shift+Enter for newline
+        </p>
       </div>
     </div>
   );

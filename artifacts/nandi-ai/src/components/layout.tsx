@@ -1,81 +1,92 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles, Image, MessageSquare, BarChart2 } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const links = [
-    { href: "/", label: "Studio" },
-    { href: "/gallery", label: "Archive" },
-    { href: "/chat", label: "Chat" },
-    { href: "/stats", label: "Metrics" },
+    { href: "/", label: "Studio", icon: Sparkles },
+    { href: "/gallery", label: "Gallery", icon: Image },
+    { href: "/chat", label: "Chat", icon: MessageSquare },
+    { href: "/stats", label: "Stats", icon: BarChart2 },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Ambient background glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/8 blur-[120px]" />
+        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-indigo-600/6 blur-[100px]" />
+      </div>
+
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 cursor-pointer group">
-            <span className="font-serif text-2xl font-normal tracking-tight group-hover:text-primary transition-colors">
+      <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
+        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 cursor-pointer group">
+            <div className="w-8 h-8 rounded-lg btn-gradient flex items-center justify-center shadow-lg">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-xl tracking-tight gradient-text">
               NandiAi
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-xs font-mono uppercase tracking-widest transition-colors hover:text-primary ${
-                  location === link.href ? "text-primary" : "text-muted-foreground"
-                }`}
-                data-testid={`nav-link-${link.label.toLowerCase()}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden p-2 -mr-2 text-foreground"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            data-testid="button-mobile-menu"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Nav */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background py-4">
-            <nav className="container mx-auto px-4 flex flex-col gap-4">
-              {links.map((link) => (
+          <nav className="hidden md:flex items-center gap-1 glass-subtle rounded-full px-2 py-1.5">
+            {links.map((link) => {
+              const isActive = location === link.href;
+              return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-lg font-serif transition-colors ${
-                    location === link.href ? "text-primary" : "text-muted-foreground"
+                  className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "text-white btn-gradient shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
+                  data-testid={`nav-link-${link.label.toLowerCase()}`}
                 >
                   {link.label}
                 </Link>
-              ))}
-            </nav>
-          </div>
-        )}
+              );
+            })}
+          </nav>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 lg:p-12">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 lg:p-12 pb-24 md:pb-12">
         {children}
       </main>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 glass border-t border-white/5">
+        <div className="flex items-center justify-around px-2 py-2">
+          {links.map((link) => {
+            const isActive = location === link.href;
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200"
+                data-testid={`mobile-nav-link-${link.label.toLowerCase()}`}
+              >
+                <div className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
+                  isActive ? "btn-gradient shadow-md" : "text-muted-foreground"
+                }`}>
+                  <Icon className={`w-4 h-4 ${isActive ? "text-white" : ""}`} />
+                </div>
+                <span className={`text-[10px] font-medium ${isActive ? "gradient-text" : "text-muted-foreground"}`}>
+                  {link.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

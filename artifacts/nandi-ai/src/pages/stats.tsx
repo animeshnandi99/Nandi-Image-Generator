@@ -1,86 +1,126 @@
 import { useGetImageStats, getGetImageStatsQueryKey } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function Stats() {
   const { data: stats, isLoading } = useGetImageStats({ query: { queryKey: getGetImageStatsQueryKey() } });
 
   if (isLoading) {
     return (
-      <div className="space-y-12 pt-6">
-        <div className="border-b border-border pb-8">
-          <h1 className="text-4xl md:text-5xl font-serif mb-4">Metrics</h1>
-          <p className="text-muted-foreground text-lg font-light tracking-wide max-w-md">
-            Analyzing operational data...
+      <div className="space-y-10 pt-6">
+        <div className="pb-6">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">
+            <span className="gradient-text">Stats</span>
+          </h1>
+          <p className="text-muted-foreground text-lg font-light max-w-md">
+            Analyzing your creative data...
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-40 w-full bg-secondary/50 rounded-none" />
-          <Skeleton className="h-40 w-full bg-secondary/50 rounded-none" />
-          <Skeleton className="h-40 w-full bg-secondary/50 rounded-none" />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-44 w-full bg-secondary/50 rounded-2xl" />
+          <Skeleton className="h-44 w-full bg-secondary/50 rounded-2xl" />
+          <Skeleton className="h-44 w-full bg-secondary/50 rounded-2xl" />
         </div>
       </div>
     );
   }
 
+  const metricCards = [
+    {
+      label: "Total Generations",
+      value: stats?.totalGenerated ?? 0,
+      description: "All-time artworks created",
+      accent: "from-purple-500/20 to-violet-500/10",
+      glow: "shadow-purple-500/20",
+    },
+    {
+      label: "Generated Today",
+      value: stats?.todayGenerated ?? 0,
+      description: "Artworks created today",
+      accent: "from-indigo-500/20 to-blue-500/10",
+      glow: "shadow-indigo-500/20",
+      highlight: true,
+    },
+    {
+      label: "Active Styles",
+      value: stats?.popularStyles?.length ?? 0,
+      description: "Distinct styles used",
+      accent: "from-violet-500/20 to-fuchsia-500/10",
+      glow: "shadow-violet-500/20",
+    },
+  ];
+
   return (
-    <div className="space-y-16 pt-6 pb-20">
-      <div className="border-b border-border pb-8">
-        <h1 className="text-4xl md:text-5xl font-serif mb-4">Metrics</h1>
-        <p className="text-muted-foreground text-lg font-light tracking-wide max-w-md">
-          Performance data and stylistic preferences from your creative sessions.
+    <div className="space-y-14 pt-6 pb-20">
+      <div className="pb-6">
+        <h1 className="text-4xl md:text-5xl font-bold mb-3">
+          <span className="gradient-text">Stats</span>
+        </h1>
+        <p className="text-muted-foreground text-lg font-light max-w-md">
+          Your creative activity and style preferences at a glance.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="p-8 border border-border bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <div className="w-16 h-16 border-2 border-foreground" />
+      <div className="grid gap-5 md:grid-cols-3">
+        {metricCards.map((card) => (
+          <div
+            key={card.label}
+            className={cn(
+              "relative p-8 rounded-2xl glass border border-white/8 overflow-hidden group",
+              "hover:border-white/12 transition-all duration-300",
+              `hover:shadow-xl ${card.glow}`
+            )}
+          >
+            <div className={cn(
+              "absolute inset-0 bg-gradient-to-br opacity-60 pointer-events-none rounded-2xl",
+              card.accent
+            )} />
+            <div className="relative z-10">
+              <h3 className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-5">
+                {card.label}
+              </h3>
+              <p className={cn(
+                "text-6xl font-bold tracking-tight leading-none mb-3",
+                card.highlight ? "gradient-text" : "text-foreground"
+              )}>
+                {card.value}
+              </p>
+              <p className="text-xs text-muted-foreground">{card.description}</p>
+            </div>
           </div>
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">Total Generations</h3>
-          <p className="text-6xl font-serif font-light tracking-tight">{stats?.totalGenerated || 0}</p>
-        </div>
-        
-        <div className="p-8 border border-border bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <div className="w-16 h-16 border-2 border-primary rounded-full" />
-          </div>
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">Generated Today</h3>
-          <p className="text-6xl font-serif font-light tracking-tight text-primary">{stats?.todayGenerated || 0}</p>
-        </div>
-        
-        <div className="p-8 border border-border bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <div className="w-16 h-16 border-b-2 border-r-2 border-foreground transform rotate-45 translate-x-4 -translate-y-4" />
-          </div>
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">Active Styles</h3>
-          <p className="text-6xl font-serif font-light tracking-tight">{stats?.popularStyles?.length || 0}</p>
-        </div>
+        ))}
       </div>
 
       <div className="max-w-3xl">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-serif">Style Distribution</h2>
-        </div>
+        <h2 className="text-2xl font-bold mb-6">
+          <span className="gradient-text">Style Distribution</span>
+        </h2>
         
-        <div className="p-8 border border-border bg-white">
+        <div className="glass rounded-2xl border border-white/8 p-8">
           {!stats?.popularStyles || stats.popularStyles.length === 0 ? (
-            <p className="text-muted-foreground text-center py-12 font-serif italic">Insufficient data for distribution analysis.</p>
+            <p className="text-muted-foreground text-center py-12 italic">
+              No style data yet. Start creating!
+            </p>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {stats.popularStyles.map((item, index) => {
                 const percentage = stats.totalGenerated > 0 ? (item.count / stats.totalGenerated) * 100 : 0;
                 return (
-                  <div key={item.style} className="flex flex-col gap-2">
+                  <div key={item.style} className="flex flex-col gap-2.5">
                     <div className="flex items-end justify-between">
-                      <div className="font-medium text-sm">{item.style || "Unstyled"}</div>
+                      <div className="font-medium text-sm text-foreground/90">{item.style || "Unstyled"}</div>
                       <div className="text-xs font-mono text-muted-foreground">
                         {item.count} <span className="opacity-50">({percentage.toFixed(0)}%)</span>
                       </div>
                     </div>
-                    <div className="w-full h-1 bg-secondary relative overflow-hidden">
-                      <div 
-                        className="absolute inset-y-0 left-0 bg-primary transition-all duration-1000 ease-out"
-                        style={{ width: `${Math.max(2, percentage)}%`, transitionDelay: `${index * 100}ms` }}
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-purple-500 to-violet-400 transition-all duration-1000 ease-out"
+                        style={{
+                          width: `${Math.max(2, percentage)}%`,
+                          transitionDelay: `${index * 100}ms`,
+                          animation: `bar-enter 1s ${index * 100}ms ease-out both`
+                        }}
                       />
                     </div>
                   </div>
