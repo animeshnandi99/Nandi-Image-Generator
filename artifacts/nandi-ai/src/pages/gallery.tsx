@@ -1,28 +1,26 @@
-import { useGetImageHistory, useDeleteImage, getGetImageHistoryQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Trash2, X, ImageIcon } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Trash2, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "wouter";
+import { getAllImages, deleteImage, LOCAL_IMAGES_QUERY_KEY, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
 
 export default function Gallery() {
-  const { data: images, isLoading } = useGetImageHistory(undefined, { query: { queryKey: getGetImageHistoryQueryKey() } });
-  const deleteImage = useDeleteImage();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleDelete = (id: number) => {
-    deleteImage.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetImageHistoryQueryKey() });
-          toast({ description: "Artwork removed from collection." });
-        },
-      }
-    );
+  const { data: images, isLoading } = useQuery({
+    queryKey: LOCAL_IMAGES_QUERY_KEY,
+    queryFn: getAllImages,
+  });
+
+  const handleDelete = async (id: string) => {
+    await deleteImage(id);
+    queryClient.invalidateQueries({ queryKey: LOCAL_IMAGES_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: LOCAL_STATS_QUERY_KEY });
+    toast({ description: "Artwork removed from collection." });
   };
 
   if (isLoading) {
@@ -91,17 +89,16 @@ export default function Gallery() {
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
-                    
-                    {/* Hover Overlay */}
+
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
                       <p className="text-sm text-white/90 italic line-clamp-3 leading-relaxed mb-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
                         "{img.prompt}"
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] text-white/50 font-mono uppercase tracking-widest">{img.size}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-7 w-7 text-white/50 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors z-10"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -133,7 +130,7 @@ export default function Gallery() {
                         </Button>
                       </DialogTrigger>
                     </div>
-                    
+
                     <div className="flex-1 space-y-7">
                       <div>
                         <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Prompt</h3>
@@ -141,7 +138,7 @@ export default function Gallery() {
                           "{img.prompt}"
                         </p>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/8">
                         <div>
                           <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Dimensions</h3>
@@ -162,7 +159,7 @@ export default function Gallery() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-8 flex gap-3 pt-6 border-t border-white/8">
                       <button
                         className="flex-1 glass border border-white/10 hover:border-white/20 text-sm font-medium py-2.5 rounded-xl transition-all duration-200"

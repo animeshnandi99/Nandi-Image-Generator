@@ -7,7 +7,7 @@
  */
 
 export interface GeneratedImage {
-  id: number;
+  id: string;
   prompt: string;
   b64_json: string;
   size: string;

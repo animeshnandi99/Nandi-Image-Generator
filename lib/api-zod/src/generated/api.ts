@@ -30,72 +30,12 @@ export const GenerateImageBody = zod.object({
 })
 
 export const GenerateImageResponse = zod.object({
-  "id": zod.number(),
+  "id": zod.string(),
   "prompt": zod.string(),
   "b64_json": zod.string(),
   "size": zod.string(),
   "style": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Get previously generated images
- */
-export const getImageHistoryQueryLimitDefault = 20;
-export const getImageHistoryQueryOffsetDefault = 0;
-
-export const GetImageHistoryQueryParams = zod.object({
-  "limit": zod.coerce.number().default(getImageHistoryQueryLimitDefault),
-  "offset": zod.coerce.number().default(getImageHistoryQueryOffsetDefault)
-})
-
-export const GetImageHistoryResponseItem = zod.object({
-  "id": zod.number(),
-  "prompt": zod.string(),
-  "b64_json": zod.string(),
-  "size": zod.string(),
-  "style": zod.string().nullish(),
-  "createdAt": zod.coerce.date()
-})
-export const GetImageHistoryResponse = zod.array(GetImageHistoryResponseItem)
-
-
-/**
- * @summary Get a single generated image by ID
- */
-export const GetImageParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const GetImageResponse = zod.object({
-  "id": zod.number(),
-  "prompt": zod.string(),
-  "b64_json": zod.string(),
-  "size": zod.string(),
-  "style": zod.string().nullish(),
-  "createdAt": zod.coerce.date()
-})
-
-
-/**
- * @summary Delete a generated image
- */
-export const DeleteImageParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-
-/**
- * @summary Get image generation statistics
- */
-export const GetImageStatsResponse = zod.object({
-  "totalGenerated": zod.number(),
-  "todayGenerated": zod.number(),
-  "popularStyles": zod.array(zod.object({
-  "style": zod.string(),
-  "count": zod.number()
-}))
 })
 
 
@@ -113,17 +53,5 @@ export const EnhancePromptResponse = zod.object({
   "enhancedPrompt": zod.string(),
   "original": zod.string()
 })
-
-
-/**
- * @summary Get chat message history
- */
-export const GetChatHistoryResponseItem = zod.object({
-  "id": zod.string(),
-  "role": zod.enum(['user', 'assistant']),
-  "content": zod.string(),
-  "createdAt": zod.coerce.date()
-})
-export const GetChatHistoryResponse = zod.array(GetChatHistoryResponseItem)
 
 

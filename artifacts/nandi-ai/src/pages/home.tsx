@@ -4,11 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Sparkles, Download, Wand2 } from "lucide-react";
-import { 
-  useGenerateImage, 
-  useEnhancePrompt, 
-  getGetImageHistoryQueryKey 
+import {
+  useGenerateImage,
+  useEnhancePrompt,
 } from "@workspace/api-client-react";
+import { saveImage, LOCAL_IMAGES_QUERY_KEY, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -63,13 +63,22 @@ export default function Home() {
         },
       },
       {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           setGeneratedImage({
             b64_json: data.b64_json,
             prompt: data.prompt,
             size: data.size,
           });
-          queryClient.invalidateQueries({ queryKey: getGetImageHistoryQueryKey() });
+          await saveImage({
+            id: data.id,
+            prompt: data.prompt,
+            b64_json: data.b64_json,
+            size: data.size,
+            style: data.style ?? null,
+            createdAt: data.createdAt,
+          });
+          queryClient.invalidateQueries({ queryKey: LOCAL_IMAGES_QUERY_KEY });
+          queryClient.invalidateQueries({ queryKey: LOCAL_STATS_QUERY_KEY });
           toast({
             title: "Artwork Generated",
             description: "Your vision is ready.",

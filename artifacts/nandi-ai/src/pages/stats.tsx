@@ -1,9 +1,13 @@
-import { useGetImageStats, getGetImageStatsQueryKey } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { getImageStats, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
 
 export default function Stats() {
-  const { data: stats, isLoading } = useGetImageStats({ query: { queryKey: getGetImageStatsQueryKey() } });
+  const { data: stats, isLoading } = useQuery({
+    queryKey: LOCAL_STATS_QUERY_KEY,
+    queryFn: getImageStats,
+  });
 
   if (isLoading) {
     return (
@@ -95,7 +99,7 @@ export default function Stats() {
         <h2 className="text-2xl font-bold mb-6">
           <span className="gradient-text">Style Distribution</span>
         </h2>
-        
+
         <div className="glass rounded-2xl border border-white/8 p-8">
           {!stats?.popularStyles || stats.popularStyles.length === 0 ? (
             <p className="text-muted-foreground text-center py-12 italic">

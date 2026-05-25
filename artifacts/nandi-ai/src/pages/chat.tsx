@@ -1,39 +1,41 @@
 import { useState, useRef, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useGetChatHistory, getGetChatHistoryQueryKey, useClearChatHistory } from "@workspace/api-client-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import logoImg from "@assets/nandi-ai-1777879067042_1779626685766.png";
+import {
+  getAllChatMessages,
+  saveChatMessage,
+  clearChatMessages,
+  LOCAL_CHAT_QUERY_KEY,
+  type LocalChatMessage,
+} from "@workspace/local-store";
 
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-};
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 export default function Chat() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamedContent, setStreamedContent] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
-  const { data: history, isLoading } = useGetChatHistory({ query: { queryKey: getGetChatHistoryQueryKey() } });
-  const clearMutation = useClearChatHistory();
 
-  const handleClear = () => {
-    clearMutation.mutate(undefined, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetChatHistoryQueryKey() });
-        toast({ description: "Conversation history cleared." });
-      }
-    });
+  const { data: history, isLoading } = useQuery({
+    queryKey: LOCAL_CHAT_QUERY_KEY,
+    queryFn: getAllChatMessages,
+  });
+
+  const handleClear = async () => {
+    await clearChatMessages();
+    queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
+    toast({ description: "Conversation history cleared." });
   };
 
   const scrollToBottom = () => {
@@ -55,21 +57,29 @@ export default function Chat() {
     setIsStreaming(true);
     setStreamedContent("");
 
-    queryClient.setQueryData(getGetChatHistoryQueryKey(), (old: Message[] | undefined) => {
-      const msgs = old || [];
-      return [...msgs, {
-        id: `temp-${Date.now()}`,
-        role: "user",
-        content: userMessage,
-        createdAt: new Date().toISOString()
-      }];
-    });
+    const userMsg: LocalChatMessage = {
+      id: generateId(),
+      role: "user",
+      content: userMessage,
+      createdAt: new Date().toISOString(),
+    };
+
+    await saveChatMessage(userMsg);
+    queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
 
     try {
+      const currentHistory = (history ?? []).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const response = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({
+          message: userMessage,
+          history: currentHistory,
+        }),
       });
 
       if (!response.ok) throw new Error("Failed to send message");
@@ -85,12 +95,12 @@ export default function Chat() {
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
-        
+
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6);
             if (dataStr === '[DONE]') continue;
-            
+
             try {
               const data = JSON.parse(dataStr);
               if (data.content) {
@@ -106,8 +116,15 @@ export default function Chat() {
           }
         }
       }
-      
-      queryClient.invalidateQueries({ queryKey: getGetChatHistoryQueryKey() });
+
+      const assistantMsg: LocalChatMessage = {
+        id: generateId(),
+        role: "assistant",
+        content: currentText,
+        createdAt: new Date().toISOString(),
+      };
+      await saveChatMessage(assistantMsg);
+      queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
     } catch (error) {
       toast({ variant: "destructive", description: "Connection error." });
       console.error(error);
@@ -128,11 +145,11 @@ export default function Chat() {
             <p className="text-muted-foreground text-xs font-light mt-0.5">Your creative AI companion</p>
           </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleClear}
-          disabled={!history?.length || isStreaming || clearMutation.isPending}
+          disabled={!history?.length || isStreaming}
           className="text-[11px] font-medium text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-full px-3 gap-1.5 transition-all"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -141,7 +158,7 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto mb-5 pr-2 space-y-5 scroll-smooth"
       >
@@ -160,14 +177,13 @@ export default function Chat() {
         ) : (
           <div className="space-y-5 pb-4">
             {history?.map((msg) => (
-              <div 
-                key={msg.id} 
+              <div
+                key={msg.id}
                 className={cn(
                   "flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300",
                   msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                 )}
               >
-                {/* Avatar */}
                 <div className={cn(
                   "shrink-0 w-8 h-8 flex items-center justify-center rounded-xl shadow-md",
                   msg.role === "user"
@@ -180,7 +196,6 @@ export default function Chat() {
                   }
                 </div>
 
-                {/* Bubble */}
                 <div className={cn(
                   "rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
                   msg.role === "user"
@@ -191,8 +206,7 @@ export default function Chat() {
                 </div>
               </div>
             ))}
-            
-            {/* Streaming Message Bubble */}
+
             {isStreaming && (
               <div className="flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl glass border border-white/10">

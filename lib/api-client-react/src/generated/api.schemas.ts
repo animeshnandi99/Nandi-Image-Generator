@@ -27,24 +27,13 @@ export interface ImageGenerationInput {
 }
 
 export interface GeneratedImage {
-  id: number;
+  id: string;
   prompt: string;
   b64_json: string;
   size: string;
   /** @nullable */
   style?: string | null;
   createdAt: string;
-}
-
-export type ImageStatsPopularStylesItem = {
-  style: string;
-  count: number;
-};
-
-export interface ImageStats {
-  totalGenerated: number;
-  todayGenerated: number;
-  popularStyles: ImageStatsPopularStylesItem[];
 }
 
 export interface EnhancePromptInput {
@@ -57,27 +46,7 @@ export interface EnhancePromptResult {
   original: string;
 }
 
-export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
-
-
-export const ChatMessageRole = {
-  user: 'user',
-  assistant: 'assistant',
-} as const;
-
-export interface ChatMessage {
-  id: string;
-  role: ChatMessageRole;
-  content: string;
-  createdAt: string;
-}
-
 export interface ErrorResponse {
   error: string;
 }
-
-export type GetImageHistoryParams = {
-limit?: number;
-offset?: number;
-};
 

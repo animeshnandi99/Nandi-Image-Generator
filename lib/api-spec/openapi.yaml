@@ -60,83 +60,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /images/history:
-    get:
-      operationId: getImageHistory
-      tags: [images]
-      summary: Get previously generated images
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        "200":
-          description: List of generated images
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GeneratedImage"
-
-  /images/{id}:
-    get:
-      operationId: getImage
-      tags: [images]
-      summary: Get a single generated image by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: The generated image
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GeneratedImage"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    delete:
-      operationId: deleteImage
-      tags: [images]
-      summary: Delete a generated image
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-
-  /images/stats:
-    get:
-      operationId: getImageStats
-      tags: [images]
-      summary: Get image generation statistics
-      responses:
-        "200":
-          description: Stats
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ImageStats"
-
   /chat/enhance-prompt:
     post:
       operationId: enhancePrompt
@@ -161,29 +84,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
-  /chat/history:
-    get:
-      operationId: getChatHistory
-      tags: [chat]
-      summary: Get chat message history
-      responses:
-        "200":
-          description: List of chat messages
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ChatMessage"
-
-    delete:
-      operationId: clearChatHistory
-      tags: [chat]
-      summary: Clear all chat history
-      responses:
-        "204":
-          description: Cleared
 
 components:
   schemas:
@@ -220,7 +120,7 @@ components:
         - createdAt
       properties:
         id:
-          type: integer
+          type: string
         prompt:
           type: string
         b64_json:
@@ -232,28 +132,6 @@ components:
         createdAt:
           type: string
           format: date-time
-
-    ImageStats:
-      type: object
-      required:
-        - totalGenerated
-        - todayGenerated
-        - popularStyles
-      properties:
-        totalGenerated:
-          type: integer
-        todayGenerated:
-          type: integer
-        popularStyles:
-          type: array
-          items:
-            type: object
-            required: [style, count]
-            properties:
-              style:
-                type: string
-              count:
-                type: integer
 
     EnhancePromptInput:
       type: object
@@ -274,25 +152,6 @@ components:
           type: string
         original:
           type: string
-
-    ChatMessage:
-      type: object
-      required:
-        - id
-        - role
-        - content
-        - createdAt
-      properties:
-        id:
-          type: string
-        role:
-          type: string
-          enum: [user, assistant]
-        content:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
 
     ErrorResponse:
       type: object

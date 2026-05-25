@@ -6,15 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './chatMessage';
-export * from './chatMessageRole';
 export * from './enhancePromptInput';
 export * from './enhancePromptResult';
 export * from './errorResponse';
 export * from './generatedImage';
-export * from './getImageHistoryParams';
 export * from './healthStatus';
 export * from './imageGenerationInput';
 export * from './imageGenerationInputSize';
-export * from './imageStats';
-export * from './imageStatsPopularStylesItem';

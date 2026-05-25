@@ -1,12 +1,9 @@
 import { Router } from "express";
-import { db, chatMessagesTable } from "@workspace/db";
-import { asc } from "drizzle-orm";
 import { EnhancePromptBody } from "@workspace/api-zod";
 import OpenAI from "openai";
 
 const router = Router();
 
-// OpenRouter uses OpenAI-compatible API
 const openrouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
@@ -52,9 +49,13 @@ Rules:
   }
 });
 
-// POST /chat/message — SSE streaming chat
+// POST /chat/message — SSE streaming chat (stateless, history sent from client)
 router.post("/chat/message", async (req, res) => {
-  const { message } = req.body as { message?: string };
+  const { message, history } = req.body as {
+    message?: string;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+  };
+
   if (!message || typeof message !== "string" || !message.trim()) {
     res.status(400).json({ error: "Message is required" });
     return;
@@ -65,21 +66,10 @@ router.post("/chat/message", async (req, res) => {
   res.setHeader("Connection", "keep-alive");
 
   try {
-    await db.insert(chatMessagesTable).values({
-      role: "user",
-      content: message.trim(),
-    });
-
-    const history = await db
-      .select()
-      .from(chatMessagesTable)
-      .orderBy(asc(chatMessagesTable.createdAt))
-      .limit(20);
-
-    const chatMessages = history.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    }));
+    const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = [
+      ...(history ?? []),
+      { role: "user", content: message.trim() },
+    ];
 
     const stream = await openrouter.chat.completions.create({
       model: GROK_MODEL,
@@ -94,19 +84,12 @@ router.post("/chat/message", async (req, res) => {
       stream: true,
     });
 
-    let fullResponse = "";
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
-        fullResponse += content;
         res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
     }
-
-    await db.insert(chatMessagesTable).values({
-      role: "assistant",
-      content: fullResponse,
-    });
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
@@ -116,29 +99,6 @@ router.post("/chat/message", async (req, res) => {
     res.write(`data: ${JSON.stringify({ error: message })}\n\n`);
     res.end();
   }
-});
-
-// GET /chat/history
-router.get("/chat/history", async (_req, res) => {
-  const rows = await db
-    .select()
-    .from(chatMessagesTable)
-    .orderBy(asc(chatMessagesTable.createdAt));
-
-  res.json(
-    rows.map((row) => ({
-      id: String(row.id),
-      role: row.role,
-      content: row.content,
-      createdAt: row.createdAt.toISOString(),
-    }))
-  );
-});
-
-// DELETE /chat/history
-router.delete("/chat/history", async (_req, res) => {
-  await db.delete(chatMessagesTable);
-  res.status(204).send();
 });
 
 export default router;
