@@ -4,6 +4,9 @@ import { randomUUID } from "crypto";
 
 const router = Router();
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+
 function sizeToDimensions(size: string): { width: number; height: number } {
   switch (size) {
     case "1536x1024":
@@ -26,23 +29,54 @@ router.post("/images/generate", async (req, res) => {
   const { prompt, size = "1024x1024", style } = parsed.data;
 
   try {
-    const { width, height } = sizeToDimensions(size);
-    const fullPrompt = style
-      ? `${prompt}, ${style} style, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`
-      : `${prompt}, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`;
-    const encodedPrompt = encodeURIComponent(fullPrompt);
-    const seed = Math.floor(Math.random() * 1_000_000);
-    const encodedNegative = encodeURIComponent("blurry, low quality, watermark, text, deformed, ugly, duplicate, watermark, signature");
-
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&enhance=true&model=flux&turbo=false&negative_prompt=${encodedNegative}`;
-
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Pollinations API returned ${imageResponse.status}`);
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-    const b64_json = imageBuffer.toString("base64");
+    const { width, height } = sizeToDimensions(size);
+    const fullPrompt = style
+      ? `${prompt} in ${style} style, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`
+      : `${prompt}, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`;
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: fullPrompt }],
+            },
+          ],
+          generationConfig: {
+            responseModalities: ["TEXT", "IMAGE"],
+          },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const errBody = await geminiRes.text();
+      throw new Error(`Gemini API returned ${geminiRes.status}: ${errBody}`);
+    }
+
+    const geminiData = (await geminiRes.json()) as {
+      candidates?: Array<{
+        content?: {
+          parts?: Array<{ inlineData?: { data: string }; text?: string }>;
+        };
+      }>;
+    };
+
+    const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
+    const imagePart = parts.find((p) => p.inlineData?.data);
+    const b64_json = imagePart?.inlineData?.data;
+
+    if (!b64_json) {
+      throw new Error("Gemini returned no image data");
+    }
 
     res.json({
       id: randomUUID(),
