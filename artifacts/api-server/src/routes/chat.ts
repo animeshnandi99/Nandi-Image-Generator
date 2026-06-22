@@ -10,8 +10,9 @@ const openrouter = new OpenAI({
 });
 
 const GROK_MODEL = "x-ai/grok-4.3";
+const DEEPSEEK_MODEL = "deepseek/deepseek-v4-pro";
 
-// POST /chat/enhance-prompt
+// POST /chat/enhance-prompt — uses Grok
 router.post("/chat/enhance-prompt", async (req, res) => {
   const parsed = EnhancePromptBody.safeParse(req.body);
   if (!parsed.success) {
@@ -49,7 +50,7 @@ Rules:
   }
 });
 
-// POST /chat/message — SSE streaming chat (stateless, history sent from client)
+// POST /chat/message — SSE streaming chat using DeepSeek (separate from prompt enhancer)
 router.post("/chat/message", async (req, res) => {
   const { message, history } = req.body as {
     message?: string;
@@ -72,12 +73,12 @@ router.post("/chat/message", async (req, res) => {
     ];
 
     const stream = await openrouter.chat.completions.create({
-      model: GROK_MODEL,
+      model: DEEPSEEK_MODEL,
       max_tokens: 1024,
       messages: [
         {
           role: "system",
-          content: `You are NandiAi Assistant — a creative, helpful AI built into NandiAi, a text-to-image art generation platform. You help users with creative ideas, image prompt suggestions, artistic styles, and general questions. Be warm, enthusiastic about creativity, and concise.`,
+          content: `You are NandiAi Assistant — a creative, helpful AI companion built into NandiAi. You help users with creative ideas, image prompt suggestions, artistic styles, and general questions. Be warm, enthusiastic about creativity, and concise. You are powered by DeepSeek.`,
         },
         ...chatMessages,
       ],
