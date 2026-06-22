@@ -70,7 +70,7 @@ export default function Home() {
             size: data.size,
           });
           await saveImage({
-            id: data.id,
+            id: String(data.id),
             prompt: data.prompt,
             b64_json: data.b64_json,
             size: data.size,

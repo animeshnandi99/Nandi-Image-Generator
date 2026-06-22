@@ -8,7 +8,6 @@ import NotFound from "@/pages/not-found";
 // Import pages
 import Home from "@/pages/home";
 import Gallery from "@/pages/gallery";
-import Stats from "@/pages/stats";
 import Chat from "@/pages/chat";
 
 const queryClient = new QueryClient({
@@ -27,7 +26,6 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/gallery" component={Gallery} />
         <Route path="/chat" component={Chat} />
-        <Route path="/stats" component={Stats} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

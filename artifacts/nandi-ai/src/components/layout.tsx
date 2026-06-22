@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Image, MessageSquare, BarChart2 } from "lucide-react";
+import { Image, MessageSquare } from "lucide-react";
 import logoImg from "@assets/nandi-ai-1777879067042_1779626685766.png";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -10,7 +10,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Studio", icon: Image },
     { href: "/gallery", label: "Gallery", icon: Image },
     { href: "/chat", label: "Chat", icon: MessageSquare },
-    { href: "/stats", label: "Stats", icon: BarChart2 },
   ];
 
   return (
