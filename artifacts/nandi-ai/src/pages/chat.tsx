@@ -174,7 +174,7 @@ export default function Chat() {
           <img src={logoImg} alt="NandiAi" className="w-10 h-10 rounded-xl object-cover shadow-lg" />
           <div>
             <h1 className="text-xl font-bold gradient-text">NandiAi Assistant</h1>
-            <p className="text-muted-foreground text-xs font-light mt-0.5">Your creative AI companion</p>
+            <p className="text-muted-foreground text-xs font-light mt-0.5">Standalone chat, separate from image generation</p>
           </div>
         </div>
         <Button
@@ -203,7 +203,7 @@ export default function Chat() {
             <img src={logoImg} alt="NandiAi" className="w-16 h-16 rounded-2xl object-cover shadow-xl glow" />
             <div>
               <p className="font-semibold text-lg text-foreground/80 mb-1">How can I help you today?</p>
-              <p className="text-muted-foreground text-sm">Ask me anything about your creative projects.</p>
+              <p className="text-muted-foreground text-sm">Ask questions or brainstorm. This chat won’t generate or change images.</p>
             </div>
           </div>
         ) : (

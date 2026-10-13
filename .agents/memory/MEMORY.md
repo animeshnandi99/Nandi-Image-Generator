@@ -1,0 +1,1 @@
+- [NandiAi chat separation](nandi-ai-chat-separation.md) — Keep Chat standalone; it must not trigger or control image generation.
