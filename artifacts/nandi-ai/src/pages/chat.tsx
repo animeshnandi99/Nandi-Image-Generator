@@ -167,14 +167,14 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto py-6">
+      <div className="flex flex-col h-[calc(100dvh-12rem)] md:h-[calc(100vh-6rem)] max-w-4xl mx-auto py-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-5 border-b border-white/8 shrink-0">
+      <div className="flex items-center justify-between mb-6 pb-5 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
-          <img src={logoImg} alt="NandiAi" className="w-10 h-10 rounded-xl object-cover shadow-lg" />
+          <img src={logoImg} alt="NandiAi" className="w-10 h-10 rounded-sm object-cover" />
           <div>
-            <h1 className="text-xl font-bold gradient-text">NandiAi Assistant</h1>
-            <p className="text-muted-foreground text-xs font-light mt-0.5">Standalone chat, separate from image generation</p>
+            <h1 className="text-xl font-semibold text-foreground">NandiAi Assistant</h1>
+            <p className="text-muted-foreground text-xs mt-0.5">Separate chat. Messages do not create or change images.</p>
           </div>
         </div>
         <Button
@@ -182,7 +182,7 @@ export default function Chat() {
           size="sm"
           onClick={handleClear}
           disabled={!history?.length || isStreaming}
-          className="text-[11px] font-medium text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-full px-3 gap-1.5 transition-all"
+          className="rounded-sm px-3 text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5"
         >
           <Trash2 className="w-3.5 h-3.5" />
           Clear
@@ -192,18 +192,18 @@ export default function Chat() {
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto mb-5 pr-2 space-y-5 scroll-smooth"
+        className="flex-1 overflow-y-auto mb-5 pr-2 space-y-5"
       >
         {isLoading ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground italic text-sm">
-            Connecting...
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm" role="status">
+              Loading saved chat...
           </div>
         ) : (!history || history.length === 0) && !isStreaming ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <img src={logoImg} alt="NandiAi" className="w-16 h-16 rounded-2xl object-cover shadow-xl glow" />
+            <img src={logoImg} alt="NandiAi" className="w-16 h-16 rounded-sm object-cover" />
             <div>
-              <p className="font-semibold text-lg text-foreground/80 mb-1">How can I help you today?</p>
-              <p className="text-muted-foreground text-sm">Ask questions or brainstorm. This chat won’t generate or change images.</p>
+              <p className="font-semibold text-lg text-foreground mb-1">Ask a question or brainstorm.</p>
+              <p className="text-muted-foreground text-sm">This chat will not generate or change images.</p>
             </div>
           </div>
         ) : (
@@ -212,15 +212,15 @@ export default function Chat() {
               <div
                 key={msg.id}
                 className={cn(
-                  "flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300",
+                  "flex gap-3 max-w-[85%]",
                   msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                 )}
               >
                 <div className={cn(
-                  "shrink-0 w-8 h-8 flex items-center justify-center rounded-xl shadow-md",
+                  "shrink-0 w-8 h-8 flex items-center justify-center rounded-sm",
                   msg.role === "user"
-                    ? "btn-gradient"
-                    : "glass border border-white/10"
+                    ? "bg-primary text-primary-foreground"
+                    : "glass border border-border"
                 )}>
                   {msg.role === "user"
                     ? <User className="w-4 h-4 text-white" />
@@ -229,10 +229,10 @@ export default function Chat() {
                 </div>
 
                 <div className={cn(
-                  "rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+                  "rounded-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
                   msg.role === "user"
-                    ? "btn-gradient text-white rounded-tr-sm shadow-lg"
-                    : "glass border border-white/8 text-foreground/90 rounded-tl-sm"
+                    ? "bg-primary text-primary-foreground rounded-tr-sm"
+                    : "glass border border-border text-foreground rounded-tl-sm"
                 )}>
                   {msg.content}
                 </div>
@@ -240,21 +240,12 @@ export default function Chat() {
             ))}
 
             {isStreaming && (
-              <div className="flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl glass border border-white/10">
+              <div className="flex gap-3 max-w-[85%]">
+                <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-sm glass border border-border">
                   <img src={logoImg} alt="NandiAi" className="w-4 h-4 rounded object-cover" />
                 </div>
-                <div className="glass border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
-                  {streamedContent || (
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                  )}
-                  {streamedContent && (
-                    <span className="inline-block w-0.5 h-4 ml-0.5 bg-primary animate-pulse align-middle rounded-full" />
-                  )}
+                <div className="glass border border-border rounded-md rounded-tl-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                  {streamedContent || <span className="text-muted-foreground">Assistant is responding...</span>}
                 </div>
               </div>
             )}
@@ -265,12 +256,13 @@ export default function Chat() {
       {/* Input Bar */}
       <div className="shrink-0">
         <div className={cn(
-          "glass rounded-2xl border border-white/10 p-2 transition-all duration-200",
-          "focus-within:border-primary/40 focus-within:shadow-lg focus-within:shadow-primary/10"
+          "glass rounded-sm border border-border p-2",
+          "focus-within:border-primary"
         )}>
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <Textarea
               value={input}
+              aria-label="Message NandiAi"
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -279,24 +271,25 @@ export default function Chat() {
                 }
               }}
               placeholder="Message NandiAi..."
-              className="min-h-[52px] max-h-36 border-none shadow-none resize-none focus-visible:ring-0 rounded-xl bg-transparent placeholder:text-muted-foreground/40 text-sm"
+              className="min-h-[52px] max-h-36 border-none shadow-none resize-none focus-visible:ring-0 rounded-sm bg-transparent placeholder:text-muted-foreground text-sm"
               disabled={isStreaming}
             />
             <button
               type="submit"
+              aria-label="Send message"
               disabled={!input.trim() || isStreaming}
               className={cn(
-                "h-10 w-10 rounded-xl shrink-0 mb-1 mr-1 flex items-center justify-center transition-all duration-200",
+                "h-10 w-10 rounded-sm shrink-0 mb-1 mr-1 flex items-center justify-center",
                 input.trim() && !isStreaming
-                  ? "btn-gradient text-white hover:shadow-lg hover:shadow-purple-500/30 active:scale-95"
-                  : "bg-white/5 text-muted-foreground cursor-not-allowed"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-secondary text-muted-foreground cursor-not-allowed"
               )}
             >
               <Send className="w-4 h-4" />
             </button>
           </form>
         </div>
-        <p className="text-center mt-2 text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
+        <p className="text-center mt-2 text-xs text-muted-foreground">
           Shift+Enter for newline
         </p>
       </div>

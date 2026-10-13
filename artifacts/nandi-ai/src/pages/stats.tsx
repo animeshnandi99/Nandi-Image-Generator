@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import { getImageStats, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
 
 export default function Stats() {
@@ -13,11 +12,11 @@ export default function Stats() {
     return (
       <div className="space-y-10 pt-6">
         <div className="pb-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            <span className="gradient-text">Stats</span>
+          <h1 className="text-3xl md:text-4xl font-semibold mb-3">
+            Image activity
           </h1>
-          <p className="text-muted-foreground text-lg font-light max-w-md">
-            Analyzing your creative data...
+          <p className="text-muted-foreground text-base max-w-md">
+            Counts from images saved in this browser.
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -31,37 +30,30 @@ export default function Stats() {
 
   const metricCards = [
     {
-      label: "Total Generations",
+      label: "Saved images",
       value: stats?.totalGenerated ?? 0,
-      description: "All-time artworks created",
-      accent: "from-purple-500/20 to-violet-500/10",
-      glow: "shadow-purple-500/20",
+      description: "Images stored in this browser",
     },
     {
-      label: "Generated Today",
+      label: "Created today",
       value: stats?.todayGenerated ?? 0,
-      description: "Artworks created today",
-      accent: "from-indigo-500/20 to-blue-500/10",
-      glow: "shadow-indigo-500/20",
-      highlight: true,
+      description: "Images created today in this browser",
     },
     {
-      label: "Active Styles",
+      label: "Styles used",
       value: stats?.popularStyles?.length ?? 0,
-      description: "Distinct styles used",
-      accent: "from-violet-500/20 to-fuchsia-500/10",
-      glow: "shadow-violet-500/20",
+      description: "Distinct styles in saved images",
     },
   ];
 
   return (
     <div className="space-y-14 pt-6 pb-20">
       <div className="pb-6">
-        <h1 className="text-4xl md:text-5xl font-bold mb-3">
-          <span className="gradient-text">Stats</span>
+        <h1 className="text-3xl md:text-4xl font-semibold mb-3">
+          Image activity
         </h1>
-        <p className="text-muted-foreground text-lg font-light max-w-md">
-          Your creative activity and style preferences at a glance.
+        <p className="text-muted-foreground text-base max-w-md">
+          Counts reflect images saved in this browser.
         </p>
       </div>
 
@@ -69,45 +61,30 @@ export default function Stats() {
         {metricCards.map((card) => (
           <div
             key={card.label}
-            className={cn(
-              "relative p-8 rounded-2xl glass border border-white/8 overflow-hidden group",
-              "hover:border-white/12 transition-all duration-300",
-              `hover:shadow-xl ${card.glow}`
-            )}
+            className="border border-border bg-card p-6"
           >
-            <div className={cn(
-              "absolute inset-0 bg-gradient-to-br opacity-60 pointer-events-none rounded-2xl",
-              card.accent
-            )} />
-            <div className="relative z-10">
-              <h3 className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-5">
+              <h3 className="text-sm font-medium text-muted-foreground mb-5">
                 {card.label}
               </h3>
-              <p className={cn(
-                "text-6xl font-bold tracking-tight leading-none mb-3",
-                card.highlight ? "gradient-text" : "text-foreground"
-              )}>
+              <p className="text-5xl font-semibold tracking-tight leading-none mb-3 text-foreground">
                 {card.value}
               </p>
-              <p className="text-xs text-muted-foreground">{card.description}</p>
-            </div>
+              <p className="text-sm text-muted-foreground">{card.description}</p>
           </div>
         ))}
       </div>
 
       <div className="max-w-3xl">
-        <h2 className="text-2xl font-bold mb-6">
-          <span className="gradient-text">Style Distribution</span>
-        </h2>
+        <h2 className="text-2xl font-semibold mb-6">Style distribution</h2>
 
-        <div className="glass rounded-2xl border border-white/8 p-8">
+        <div className="glass rounded-sm border border-border p-6">
           {!stats?.popularStyles || stats.popularStyles.length === 0 ? (
-            <p className="text-muted-foreground text-center py-12 italic">
-              No style data yet. Start creating!
+              <p className="text-muted-foreground text-center py-12">
+              No saved images with styles yet.
             </p>
           ) : (
             <div className="space-y-5">
-              {stats.popularStyles.map((item, index) => {
+              {stats.popularStyles.map((item) => {
                 const percentage = stats.totalGenerated > 0 ? (item.count / stats.totalGenerated) * 100 : 0;
                 return (
                   <div key={item.style} className="flex flex-col gap-2.5">
@@ -117,13 +94,16 @@ export default function Stats() {
                         {item.count} <span className="opacity-50">({percentage.toFixed(0)}%)</span>
                       </div>
                     </div>
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-secondary rounded-sm overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-purple-500 to-violet-400 transition-all duration-1000 ease-out"
+                        className="h-full bg-primary"
+                        role="progressbar"
+                        aria-label={`${item.style || "Unstyled"} share of saved images`}
+                        aria-valuenow={Math.round(percentage)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
                         style={{
-                          width: `${Math.max(2, percentage)}%`,
-                          transitionDelay: `${index * 100}ms`,
-                          animation: `bar-enter 1s ${index * 100}ms ease-out both`
+                          width: `${percentage}%`,
                         }}
                       />
                     </div>

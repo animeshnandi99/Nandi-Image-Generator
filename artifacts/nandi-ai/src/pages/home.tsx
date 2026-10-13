@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Sparkles, Download, Wand2 } from "lucide-react";
+import { Download, Image as ImageIcon } from "lucide-react";
 import {
   useGenerateImage,
   useEnhancePrompt,
@@ -30,7 +30,7 @@ const generateSchema = z.object({
 
 type GenerateValues = z.infer<typeof generateSchema>;
 
-const STYLES = ["Cinematic", "Watercolor", "Anime", "Neon", "Oil Painting", "Sketch", "Photorealistic"];
+const STYLES = ["Watercolor", "Anime", "Oil Painting", "Sketch", "Photorealistic"];
 
 export default function Home() {
   const { toast } = useToast();
@@ -128,39 +128,33 @@ export default function Home() {
   const isEnhancing = enhanceMutation.isPending;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-stretch min-h-[calc(100vh-8rem)] pt-6">
+    <div className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-stretch lg:min-h-[calc(100vh-8rem)] pt-2 lg:pt-6">
       {/* Input Side */}
       <div className="w-full lg:w-[45%] flex flex-col shrink-0">
-        <div className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            Bring ideas to{" "}
-            <span className="gradient-text">visual life.</span>
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-3xl md:text-4xl font-semibold mb-4 leading-tight">
+            Create an image from a written prompt
           </h1>
-          <p className="text-muted-foreground text-lg font-light max-w-md leading-relaxed">
-            Describe your vision, choose your canvas, and let AI do the rest.
+          <p className="text-muted-foreground text-base max-w-md leading-relaxed">
+            Enter a prompt, select dimensions and style, then generate an image.
           </p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 flex-1 flex flex-col">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 lg:space-y-7 flex-1 flex flex-col">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Prompt</label>
+                <label htmlFor="image-prompt" className="text-sm font-medium text-foreground">Prompt</label>
                 <Button 
                   type="button" 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleEnhance}
                   disabled={isEnhancing || isGenerating}
-                  className="h-8 text-xs font-medium text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3"
+                  className="h-8 rounded-sm px-3 text-sm font-medium text-primary underline underline-offset-4 hover:text-foreground"
                   data-testid="button-enhance-prompt"
                 >
-                  {isEnhancing ? (
-                    <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3 h-3 mr-1.5" />
-                  )}
-                  Enhance with AI
+                  {isEnhancing ? "Improving..." : "Improve prompt"}
                 </Button>
               </div>
               <FormField
@@ -170,19 +164,19 @@ export default function Home() {
                   <FormItem className="relative">
                     <FormControl>
                       <Textarea
-                        placeholder="A lone astronaut floating through a nebula of violet and gold, cinematic, ultra-detailed..."
+                        id="image-prompt"
+                        placeholder="For example: a golden retriever sitting beside a sunny window."
                         className={cn(
-                          "min-h-[160px] resize-none text-base glass rounded-xl border-white/10",
-                          "focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:border-primary/40",
-                          "placeholder:text-muted-foreground/50 transition-all duration-200",
-                          isEnhancing && "animate-pulse"
+                          "min-h-[120px] md:min-h-[160px] resize-none text-base glass rounded-sm border-border",
+                          "focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary",
+                          "placeholder:text-muted-foreground"
                         )}
                         {...field}
                       />
                     </FormControl>
                     {showEnhancedBadge && (
-                      <div className="absolute -top-2.5 -right-2.5 btn-gradient text-white text-[10px] uppercase tracking-widest font-mono py-1 px-2.5 rounded-full animate-in zoom-in fade-in duration-300 pointer-events-none shadow-lg">
-                        Enhanced ✓
+                      <div className="absolute right-2 top-2 border border-border bg-secondary px-2 py-1 text-xs text-foreground">
+                        Prompt updated
                       </div>
                     )}
                     <FormMessage />
@@ -192,14 +186,14 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Dimensions</label>
+                <p className="text-sm font-medium text-foreground" id="dimensions-label">Dimensions</p>
               <FormField
                 control={form.control}
                 name="size"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-3" role="group" aria-labelledby="dimensions-label">
                         {[
                           { value: "1024x1024", label: "Square", shape: "w-7 h-7" },
                           { value: "1536x1024", label: "Landscape", shape: "w-10 h-6" },
@@ -210,11 +204,12 @@ export default function Home() {
                             type="button"
                             onClick={() => field.onChange(opt.value)}
                             className={cn(
-                              "flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 h-24",
+                              "flex flex-col items-center justify-center p-3 md:p-4 rounded-sm border h-20 md:h-24",
                               field.value === opt.value
-                                ? "border-primary/60 bg-primary/15 text-primary glow-sm"
-                                : "glass border-white/8 text-muted-foreground hover:border-white/20 hover:text-foreground"
+                                ? "border-primary bg-accent text-primary"
+                                : "glass border-border text-muted-foreground hover:border-primary"
                             )}
+                            aria-pressed={field.value === opt.value}
                             data-testid={`btn-size-${opt.label.toLowerCase()}`}
                           >
                             <div className={cn("border-2 border-current mb-2 rounded-sm", opt.shape)} />
@@ -230,7 +225,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground/80 uppercase tracking-wider">Style</label>
+                <p className="text-sm font-medium text-foreground">Style</p>
               <FormField
                 control={form.control}
                 name="style"
@@ -238,14 +233,14 @@ export default function Home() {
                   <FormItem>
                     <Select onValueChange={(val) => field.onChange(val === "__none__" ? "" : val)} value={field.value || "__none__"}>
                       <FormControl>
-                        <SelectTrigger className="glass rounded-xl border-white/10 h-11 focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all duration-200">
+                        <SelectTrigger aria-label="Image style" className="glass rounded-sm border-border h-11 focus:ring-2 focus:ring-primary focus:border-primary">
                           <SelectValue placeholder="No style" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="glass border-white/10 bg-[hsl(var(--background)/0.92)] backdrop-blur-xl rounded-xl">
-                        <SelectItem value="__none__" className="text-muted-foreground focus:bg-white/8">No style</SelectItem>
+                      <SelectContent className="glass border-border bg-card rounded-sm">
+                        <SelectItem value="__none__" className="text-muted-foreground">No style</SelectItem>
                         {STYLES.map(style => (
-                          <SelectItem key={style} value={style} className="focus:bg-white/8">{style}</SelectItem>
+                          <SelectItem key={style} value={style}>{style}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -255,28 +250,23 @@ export default function Home() {
               />
             </div>
 
-            <div className="pt-2 pb-4">
+            <div className="pt-0 pb-2 lg:pt-2 lg:pb-4">
               <button
                 type="submit"
                 disabled={isGenerating}
                 className={cn(
-                  "w-full h-16 rounded-xl text-white font-semibold text-base transition-all duration-300",
+                  "w-full h-14 rounded-sm border border-primary font-semibold text-base transition-colors",
                   "flex items-center justify-center gap-3",
                   isGenerating
-                    ? "bg-primary/50 cursor-not-allowed"
-                    : "btn-gradient hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98]"
+                    ? "bg-primary/70 text-primary-foreground cursor-wait"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
                 data-testid="button-generate"
               >
                 {isGenerating ? (
-                  <span className="flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Generating...
-                  </span>
+                    <span role="status">Generating image...</span>
                 ) : (
-                  <span className="flex items-center gap-3">
-                    Generate Artwork <Wand2 className="h-5 w-5" />
-                  </span>
+                    <span>Generate image</span>
                 )}
               </button>
             </div>
@@ -285,13 +275,10 @@ export default function Home() {
       </div>
 
       {/* Output Side */}
-      <div className={cn(
-        "flex-1 flex flex-col items-center justify-center glass rounded-2xl p-8 lg:p-12 min-h-[500px] mb-4 transition-all duration-500",
-        generatedImage && "glow"
-      )}>
+      <div className="flex-1 flex flex-col items-center justify-center glass rounded-sm p-6 lg:p-10 min-h-[360px] lg:min-h-[500px] mb-4">
         {generatedImage ? (
-          <div className="w-full max-w-3xl animate-in fade-in zoom-in duration-700">
-            <div className="relative group rounded-xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-3xl">
+            <div className="relative overflow-hidden border border-border">
               <img
                 src={`data:${getImageMimeType(generatedImage)};base64,${generatedImage.b64_json}`}
                 alt="Generated artwork"
@@ -299,16 +286,16 @@ export default function Home() {
               />
             </div>
             
-            <div className="mt-5 glass rounded-xl p-4 space-y-4">
-              <p className="text-sm leading-relaxed text-foreground/70 italic border-l-2 border-primary/60 pl-4">
+            <div className="mt-4 glass rounded-sm p-4 space-y-4">
+              <p className="text-sm leading-relaxed text-foreground border-l-2 border-primary pl-4">
                 "{generatedImage.prompt}"
               </p>
-              <div className="flex items-center justify-between border-t border-white/8 pt-3">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">{generatedImage.size}</span>
+              <div className="flex items-center justify-between border-t border-border pt-3">
+                <span className="text-xs font-mono text-muted-foreground">{generatedImage.size}</span>
                 <a
                   href={`data:${getImageMimeType(generatedImage)};base64,${generatedImage.b64_json}`}
                   download={`nandi-${Date.now()}.${getImageMimeType(generatedImage).split("/")[1] === "jpeg" ? "jpg" : getImageMimeType(generatedImage).split("/")[1]}`}
-                  className="flex items-center gap-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4 hover:text-foreground"
                   data-testid="button-download"
                 >
                   <Download className="w-3.5 h-3.5" /> Download
@@ -317,27 +304,15 @@ export default function Home() {
             </div>
           </div>
         ) : isGenerating ? (
-          <div className="flex flex-col items-center justify-center gap-8 animate-in fade-in duration-500 text-center">
-            <div className="relative">
-              <div className="w-28 h-28 rounded-full border border-white/10 animate-spin" style={{ animationDuration: '3s' }} />
-              <div className="w-28 h-28 rounded-full border-2 border-primary border-t-transparent border-l-transparent animate-spin absolute inset-0" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full btn-gradient flex items-center justify-center shadow-lg">
-                <Sparkles className="w-5 h-5 text-white animate-pulse" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-sm font-semibold tracking-widest uppercase gradient-text animate-pulse">Generating Your Vision</div>
-              <div className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">Processing your prompt and rendering the final image...</div>
-            </div>
+          <div className="max-w-sm space-y-2 text-center" role="status">
+            <ImageIcon className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
+            <p className="font-medium">Generating image</p>
+            <p className="text-sm text-muted-foreground">This may take a short time.</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center opacity-40">
-            <div className="w-20 h-20 rounded-2xl border border-current flex items-center justify-center mb-6">
-              <Wand2 className="w-9 h-9" />
-            </div>
-            <p className="font-medium text-sm uppercase tracking-widest max-w-[200px] leading-relaxed">
-              Your artwork will appear here
-            </p>
+          <div className="flex flex-col items-center justify-center text-center text-muted-foreground">
+            <ImageIcon className="mb-4 h-8 w-8" aria-hidden="true" />
+            <p className="font-medium">Your generated image will appear here.</p>
           </div>
         )}
       </div>

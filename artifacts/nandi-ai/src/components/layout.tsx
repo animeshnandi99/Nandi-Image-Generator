@@ -14,39 +14,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Ambient background glows */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/10 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/8 blur-[120px]" />
-        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-indigo-600/6 blur-[100px]" />
-      </div>
-
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 w-full glass border-b border-white/5">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 cursor-pointer group">
+          <Link href="/" className="flex items-center gap-2.5">
             <img
               src={logoImg}
               alt="NandiAi"
-              className="w-10 h-10 rounded-lg object-cover shadow-lg"
+              className="w-9 h-9 rounded-sm object-cover"
             />
-            <span className="font-bold text-xl tracking-tight gradient-text">
+            <span className="font-bold text-xl tracking-tight text-foreground">
               NandiAi
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1 glass-subtle rounded-full px-2 py-1.5">
+          <nav className="hidden md:flex h-full items-center gap-6">
             {links.map((link) => {
               const isActive = location === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                  aria-current={isActive ? "page" : undefined}
+                  className={`h-full border-b-2 pt-1 text-sm font-medium transition-colors ${
                     isActive
-                      ? "text-white btn-gradient shadow-md"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                   data-testid={`nav-link-${link.label.toLowerCase()}`}
                 >
@@ -63,8 +57,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
+      <footer className="border-t border-border bg-background px-4 py-5 pb-24 md:px-6 md:pb-5">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} NandiAi</span>
+          <nav aria-label="Legal" className="flex gap-5">
+            <Link href="/privacy-policy" className="underline-offset-4 hover:text-foreground hover:underline">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="underline-offset-4 hover:text-foreground hover:underline">
+              Terms and Conditions
+            </Link>
+          </nav>
+        </div>
+      </footer>
+
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 glass border-t border-white/5">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background">
         <div className="flex items-center justify-around px-2 py-2">
           {links.map((link) => {
             const isActive = location === link.href;
@@ -73,15 +81,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200"
+                aria-current={isActive ? "page" : undefined}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground"
                 data-testid={`mobile-nav-link-${link.label.toLowerCase()}`}
               >
-                <div className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
-                  isActive ? "btn-gradient shadow-md" : "text-muted-foreground"
+                <div className={`w-8 h-8 flex items-center justify-center border-b-2 ${
+                  isActive ? "border-primary text-primary" : "border-transparent"
                 }`}>
-                  <Icon className={`w-4 h-4 ${isActive ? "text-white" : ""}`} />
+                  <Icon className="w-4 h-4" />
                 </div>
-                <span className={`text-[10px] font-medium ${isActive ? "gradient-text" : "text-muted-foreground"}`}>
+                <span className={`text-[10px] font-medium ${isActive ? "text-foreground" : ""}`}>
                   {link.label}
                 </span>
               </Link>

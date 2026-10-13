@@ -7,8 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "idb": "^8.0.3",
     "@tanstack/react-query": "catalog:",
+    "idb": "^8.0.4",
     "react": "catalog:"
   },
   "peerDependencies": {
