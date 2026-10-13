@@ -33,6 +33,7 @@ export const GenerateImageResponse = zod.object({
   "id": zod.string(),
   "prompt": zod.string(),
   "b64_json": zod.string(),
+  "mime_type": zod.string(),
   "size": zod.string(),
   "style": zod.string().nullish(),
   "createdAt": zod.coerce.date()

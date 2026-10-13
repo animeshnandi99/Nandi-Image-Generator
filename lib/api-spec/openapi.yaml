@@ -116,6 +116,7 @@ components:
         - id
         - prompt
         - b64_json
+        - mime_type
         - size
         - createdAt
       properties:
@@ -124,6 +125,8 @@ components:
         prompt:
           type: string
         b64_json:
+          type: string
+        mime_type:
           type: string
         size:
           type: string

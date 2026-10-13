@@ -5,7 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "wouter";
-import { getAllImages, deleteImage, LOCAL_IMAGES_QUERY_KEY, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
+import {
+  getAllImages,
+  deleteImage,
+  getImageMimeType,
+  LOCAL_IMAGES_QUERY_KEY,
+  LOCAL_STATS_QUERY_KEY,
+} from "@workspace/local-store";
 
 export default function Gallery() {
   const queryClient = useQueryClient();
@@ -84,7 +90,7 @@ export default function Gallery() {
                 <DialogTrigger asChild>
                   <div className="cursor-zoom-in relative overflow-hidden">
                     <img
-                      src={`data:image/png;base64,${img.b64_json}`}
+                      src={`data:${getImageMimeType(img)};base64,${img.b64_json}`}
                       alt={img.prompt}
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
@@ -116,7 +122,7 @@ export default function Gallery() {
                   <DialogTitle className="sr-only">Image details</DialogTitle>
                   <div className="flex-1 bg-black/40 relative flex items-center justify-center p-4 md:p-12 overflow-hidden h-[60vh] md:h-full">
                     <img
-                      src={`data:image/png;base64,${img.b64_json}`}
+                      src={`data:${getImageMimeType(img)};base64,${img.b64_json}`}
                       alt={img.prompt}
                       className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
                     />
@@ -165,8 +171,12 @@ export default function Gallery() {
                         className="flex-1 glass border border-white/10 hover:border-white/20 text-sm font-medium py-2.5 rounded-xl transition-all duration-200"
                         onClick={() => {
                           const a = document.createElement('a');
-                          a.href = `data:image/png;base64,${img.b64_json}`;
-                          a.download = `nandi-${img.id}.png`;
+                          const mimeType = getImageMimeType(img);
+                          const extension = mimeType.split("/")[1] === "jpeg"
+                            ? "jpg"
+                            : mimeType.split("/")[1];
+                          a.href = `data:${mimeType};base64,${img.b64_json}`;
+                          a.download = `nandi-${img.id}.${extension}`;
                           a.click();
                         }}
                       >

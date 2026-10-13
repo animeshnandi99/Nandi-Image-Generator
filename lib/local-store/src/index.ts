@@ -1,5 +1,11 @@
 export type { LocalImage, LocalChatMessage } from "./db";
-export { getAllImages, saveImage, deleteImage, getImageStats } from "./images";
+export {
+  getAllImages,
+  saveImage,
+  deleteImage,
+  getImageStats,
+  getImageMimeType,
+} from "./images";
 export { getAllChatMessages, saveChatMessage, clearChatMessages } from "./chat";
 
 export const LOCAL_IMAGES_QUERY_KEY = ["local-images"] as const;

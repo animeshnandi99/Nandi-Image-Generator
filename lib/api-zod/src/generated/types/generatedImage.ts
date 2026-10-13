@@ -10,6 +10,7 @@ export interface GeneratedImage {
   id: string;
   prompt: string;
   b64_json: string;
+  mime_type: string;
   size: string;
   /** @nullable */
   style?: string | null;

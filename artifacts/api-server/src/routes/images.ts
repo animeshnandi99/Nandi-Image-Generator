@@ -20,10 +20,9 @@ function sizeToDimensions(size: string): { width: number; height: number } {
 
 async function generateWithGemini(
   prompt: string,
-  width: number,
-  height: number,
+  aspectRatio: "1:1" | "3:2" | "2:3",
   style: string | null
-): Promise<{ b64_json: string }> {
+): Promise<{ b64_json: string; mime_type: string }> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY not configured");
   }
@@ -46,6 +45,7 @@ async function generateWithGemini(
         ],
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
+          imageConfig: { aspectRatio },
         },
       }),
     }
@@ -59,7 +59,10 @@ async function generateWithGemini(
   const geminiData = (await geminiRes.json()) as {
     candidates?: Array<{
       content?: {
-        parts?: Array<{ inlineData?: { data: string }; text?: string }>;
+        parts?: Array<{
+          inlineData?: { data: string; mimeType?: string };
+          text?: string;
+        }>;
       };
     }>;
   };
@@ -67,12 +70,17 @@ async function generateWithGemini(
   const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
   const imagePart = parts.find((p) => p.inlineData?.data);
   const b64_json = imagePart?.inlineData?.data;
+  const mime_type = imagePart?.inlineData?.mimeType ?? "image/png";
 
   if (!b64_json) {
     throw new Error("Gemini returned no image data");
   }
 
-  return { b64_json };
+  if (!mime_type.startsWith("image/")) {
+    throw new Error("Gemini returned an unsupported image format");
+  }
+
+  return { b64_json, mime_type };
 }
 
 async function generateWithPollinations(
@@ -80,7 +88,7 @@ async function generateWithPollinations(
   width: number,
   height: number,
   style: string | null
-): Promise<{ b64_json: string }> {
+): Promise<{ b64_json: string; mime_type: string }> {
   const fullPrompt = style
     ? `${prompt}, ${style} style, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`
     : `${prompt}, highly detailed, professional quality, masterpiece, best quality, crisp, sharp focus`;
@@ -91,15 +99,26 @@ async function generateWithPollinations(
 
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&enhance=true&model=flux&turbo=false&negative_prompt=${encodedNegative}`;
 
-  const imageResponse = await fetch(imageUrl);
+  const imageResponse = await fetch(imageUrl, {
+    signal: AbortSignal.timeout(120_000),
+  });
   if (!imageResponse.ok) {
     throw new Error(`Pollinations API returned ${imageResponse.status}`);
   }
 
   const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+  if (imageBuffer.length === 0) {
+    throw new Error("Pollinations returned an empty image");
+  }
   const b64_json = imageBuffer.toString("base64");
+  const responseMimeType = imageResponse.headers
+    .get("content-type")
+    ?.split(";")[0]
+    .trim();
+  const mime_type =
+    responseMimeType?.startsWith("image/") ? responseMimeType : "image/jpeg";
 
-  return { b64_json };
+  return { b64_json, mime_type };
 }
 
 // POST /images/generate
@@ -114,25 +133,35 @@ router.post("/images/generate", async (req, res) => {
 
   try {
     const { width, height } = sizeToDimensions(size);
+    const aspectRatio =
+      width > height ? "3:2" : width < height ? "2:3" : "1:1";
 
-    let b64_json: string;
+    let generated: { b64_json: string; mime_type: string };
     try {
       // Try Gemini first (Nano Banana)
-      const result = await generateWithGemini(prompt, width, height, style ?? null);
-      b64_json = result.b64_json;
+      generated = await generateWithGemini(
+        prompt,
+        aspectRatio,
+        style ?? null
+      );
       req.log.info("Image generated with Gemini Nano Banana");
     } catch (geminiErr) {
       req.log.warn({ err: geminiErr }, "Gemini failed, falling back to Pollinations.ai");
       // Fallback to Pollinations.ai (free, no API key)
-      const result = await generateWithPollinations(prompt, width, height, style ?? null);
-      b64_json = result.b64_json;
+      generated = await generateWithPollinations(
+        prompt,
+        width,
+        height,
+        style ?? null
+      );
       req.log.info("Image generated with Pollinations.ai (fallback)");
     }
 
     res.json({
       id: randomUUID(),
       prompt,
-      b64_json,
+      b64_json: generated.b64_json,
+      mime_type: generated.mime_type,
       size,
       style: style ?? null,
       createdAt: new Date().toISOString(),

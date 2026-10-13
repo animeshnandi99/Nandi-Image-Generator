@@ -4,6 +4,7 @@ export interface LocalImage {
   id: string;
   prompt: string;
   b64_json: string;
+  mime_type?: string;
   size: string;
   style: string | null;
   createdAt: string;

@@ -8,7 +8,12 @@ import {
   useGenerateImage,
   useEnhancePrompt,
 } from "@workspace/api-client-react";
-import { saveImage, LOCAL_IMAGES_QUERY_KEY, LOCAL_STATS_QUERY_KEY } from "@workspace/local-store";
+import {
+  saveImage,
+  getImageMimeType,
+  LOCAL_IMAGES_QUERY_KEY,
+  LOCAL_STATS_QUERY_KEY,
+} from "@workspace/local-store";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -35,6 +40,7 @@ export default function Home() {
   
   const [generatedImage, setGeneratedImage] = useState<{
     b64_json: string;
+    mime_type: string;
     prompt: string;
     size: string;
   } | null>(null);
@@ -66,6 +72,7 @@ export default function Home() {
         onSuccess: async (data) => {
           setGeneratedImage({
             b64_json: data.b64_json,
+            mime_type: data.mime_type,
             prompt: data.prompt,
             size: data.size,
           });
@@ -73,6 +80,7 @@ export default function Home() {
             id: String(data.id),
             prompt: data.prompt,
             b64_json: data.b64_json,
+            mime_type: data.mime_type,
             size: data.size,
             style: data.style ?? null,
             createdAt: data.createdAt,
@@ -285,7 +293,7 @@ export default function Home() {
           <div className="w-full max-w-3xl animate-in fade-in zoom-in duration-700">
             <div className="relative group rounded-xl overflow-hidden border border-white/10">
               <img
-                src={`data:image/png;base64,${generatedImage.b64_json}`}
+                src={`data:${getImageMimeType(generatedImage)};base64,${generatedImage.b64_json}`}
                 alt="Generated artwork"
                 className="w-full object-contain"
               />
@@ -298,8 +306,8 @@ export default function Home() {
               <div className="flex items-center justify-between border-t border-white/8 pt-3">
                 <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">{generatedImage.size}</span>
                 <a
-                  href={`data:image/png;base64,${generatedImage.b64_json}`}
-                  download={`nandi-${Date.now()}.png`}
+                  href={`data:${getImageMimeType(generatedImage)};base64,${generatedImage.b64_json}`}
+                  download={`nandi-${Date.now()}.${getImageMimeType(generatedImage).split("/")[1] === "jpeg" ? "jpg" : getImageMimeType(generatedImage).split("/")[1]}`}
                   className="flex items-center gap-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                   data-testid="button-download"
                 >

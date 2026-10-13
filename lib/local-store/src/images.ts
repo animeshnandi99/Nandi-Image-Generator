@@ -1,5 +1,13 @@
 import { getDb, type LocalImage } from "./db";
 
+export function getImageMimeType(image: Pick<LocalImage, "b64_json" | "mime_type">): string {
+  if (image.mime_type?.startsWith("image/")) return image.mime_type;
+  if (image.b64_json.startsWith("/9j/")) return "image/jpeg";
+  if (image.b64_json.startsWith("UklGR")) return "image/webp";
+  if (image.b64_json.startsWith("R0lGOD")) return "image/gif";
+  return "image/png";
+}
+
 export async function getAllImages(): Promise<LocalImage[]> {
   const db = await getDb();
   const all = await db.getAllFromIndex("images", "by_createdAt");

@@ -64,11 +64,15 @@ export default function Chat() {
       createdAt: new Date().toISOString(),
     };
 
-    await saveChatMessage(userMsg);
-    queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
-
     try {
-      const currentHistory = (history ?? []).map((m) => ({
+      await saveChatMessage(userMsg);
+      queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
+
+      const savedHistory = await getAllChatMessages();
+      const currentHistory = savedHistory
+        .filter((message) => message.id !== userMsg.id)
+        .slice(-20)
+        .map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -82,39 +86,65 @@ export default function Chat() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(
+          typeof errorBody?.error === "string"
+            ? errorBody.error
+            : "Failed to send message.",
+        );
+      }
       if (!response.body) throw new Error("No response body");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let currentText = "";
+      let buffer = "";
+      let receivedDoneEvent = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        buffer += decoder.decode(value, { stream: !done });
+        buffer = buffer.replace(/\r\n/g, "\n");
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        for (const event of events) {
+          const data = event
+            .split("\n")
+            .filter((line) => line.startsWith("data:"))
+            .map((line) => line.slice(5).trimStart())
+            .join("\n");
+          if (!data || data === "[DONE]") continue;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6);
-            if (dataStr === '[DONE]') continue;
+          let payload: { content?: string; done?: boolean; error?: string };
+          try {
+            payload = JSON.parse(data);
+          } catch {
+            throw new Error("Received an invalid response from the assistant.");
+          }
 
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.content) {
-                currentText += data.content;
-                setStreamedContent(currentText);
-              }
-              if (data.done) {
-                break;
-              }
-            } catch (e) {
-              console.error("Error parsing SSE data:", e);
-            }
+          if (payload.error) {
+            throw new Error(payload.error);
+          }
+          if (payload.content) {
+            currentText += payload.content;
+            setStreamedContent(currentText);
+          }
+          if (payload.done) {
+            receivedDoneEvent = true;
           }
         }
+
+        if (done) break;
+        if (receivedDoneEvent) {
+          await reader.cancel();
+          break;
+        }
+      }
+
+      if (!currentText.trim()) {
+        throw new Error("The assistant returned an empty response. Please try again.");
       }
 
       const assistantMsg: LocalChatMessage = {
@@ -126,7 +156,9 @@ export default function Chat() {
       await saveChatMessage(assistantMsg);
       queryClient.invalidateQueries({ queryKey: LOCAL_CHAT_QUERY_KEY });
     } catch (error) {
-      toast({ variant: "destructive", description: "Connection error." });
+      const description =
+        error instanceof Error ? error.message : "Connection error.";
+      toast({ variant: "destructive", description });
       console.error(error);
     } finally {
       setIsStreaming(false);

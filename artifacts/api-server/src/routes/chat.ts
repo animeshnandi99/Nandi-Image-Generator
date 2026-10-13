@@ -11,6 +11,12 @@ const openrouter = new OpenAI({
 
 const GROK_MODEL = "x-ai/grok-4.3";
 const DEEPSEEK_MODEL = "deepseek/deepseek-v4-pro";
+const MAX_MESSAGE_LENGTH = 4_000;
+const MAX_HISTORY_MESSAGES = 20;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 // POST /chat/enhance-prompt — uses Grok
 router.post("/chat/enhance-prompt", async (req, res) => {
@@ -52,15 +58,45 @@ Rules:
 
 // POST /chat/message — SSE streaming chat using DeepSeek (separate from prompt enhancer)
 router.post("/chat/message", async (req, res) => {
-  const { message, history } = req.body as {
-    message?: string;
-    history?: Array<{ role: "user" | "assistant"; content: string }>;
-  };
-
-  if (!message || typeof message !== "string" || !message.trim()) {
-    res.status(400).json({ error: "Message is required" });
+  const body: unknown = req.body;
+  if (!isRecord(body)) {
+    res.status(400).json({ error: "Invalid request body" });
     return;
   }
+
+  const { message, history = [] } = body;
+  if (
+    typeof message !== "string" ||
+    !message.trim() ||
+    message.length > MAX_MESSAGE_LENGTH
+  ) {
+    res.status(400).json({
+      error: `Message must be non-empty and no longer than ${MAX_MESSAGE_LENGTH} characters`,
+    });
+    return;
+  }
+
+  if (
+    !Array.isArray(history) ||
+    history.length > MAX_HISTORY_MESSAGES ||
+    history.some(
+      (item) =>
+        !isRecord(item) ||
+        (item.role !== "user" && item.role !== "assistant") ||
+        typeof item.content !== "string" ||
+        item.content.length > MAX_MESSAGE_LENGTH,
+    )
+  ) {
+    res.status(400).json({
+      error: `History must contain up to ${MAX_HISTORY_MESSAGES} valid messages`,
+    });
+    return;
+  }
+
+  const chatHistory = history as Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -68,7 +104,7 @@ router.post("/chat/message", async (req, res) => {
 
   try {
     const chatMessages: Array<{ role: "user" | "assistant"; content: string }> = [
-      ...(history ?? []),
+      ...chatHistory,
       { role: "user", content: message.trim() },
     ];
 
