@@ -1,1 +1,2 @@
 - [NandiAi chat separation](nandi-ai-chat-separation.md) — Keep Chat standalone; it must not trigger or control image generation.
+- [NandiAi brand and launch rules](nandi-ai-brand-and-launch-rules.md) — Avoid AI-product clichés and do not publish until the user's launch checklist is met.
